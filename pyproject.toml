@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tabelogmcp = "tabelogmcp.cli:app"
+tabelogmcp = "tabelogmcp.server:main"
 
 [build-system]
 requires = ["hatchling"]
