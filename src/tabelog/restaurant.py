@@ -180,6 +180,12 @@ class RestaurantSearchRequest:
         soup = BeautifulSoup(html, "lxml")
         restaurants = []
 
+        # 檢查是否有地區找不到的錯誤訊息
+        error_elem = soup.find("div", class_="rstlist-notfound")
+        if error_elem or "該当のエリア・駅が見つかりませんでした" in html:
+            # 地區無效，返回空列表而不是全國排名
+            return []
+
         # 查找餐廳列表項目 (嘗試不同的選擇器)
         restaurant_items = soup.find_all("div", class_="list-rst")
         if not restaurant_items:
