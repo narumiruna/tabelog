@@ -1,11 +1,11 @@
 # Feature Ideas & Development Notes
 
-This document tracks potential features, improvements, and implementation ideas for tabelogmcp.
+This document tracks potential features, improvements, and implementation ideas for tabelog.
 
 ## 🎯 Planned Features
 
 ### High Priority
-- [ ] **Rename package from `tabelogmcp` to `tabelog`**
+- [ ] **Rename package from `tabelog` to `tabelog`**
   - Simplify package name to match core functionality
   - Affects: pyproject.toml, src/ directory structure, all imports, documentation
   - Impact: Breaking change, requires new major version
@@ -254,13 +254,13 @@ This document tracks potential features, improvements, and implementation ideas 
       response.prev_page()
       ```
 
-- **Package name simplification**: Currently using `tabelogmcp` which implies MCP is the main focus, but the library is primarily a Tabelog scraper. Renaming to `tabelog` would:
+- **Package name simplification**: Currently using `tabelog` which implies MCP is the main focus, but the library is primarily a Tabelog scraper. Renaming to `tabelog` would:
   - Better reflect the library's core purpose
-  - Simplify imports (`from tabelog import ...` vs `from tabelogmcp import ...`)
+  - Simplify imports (`from tabelog import ...` vs `from tabelog import ...`)
   - Separate concerns: MCP server can be an optional integration, not the package identity
   - **Files to update**:
     - `pyproject.toml`: package name, import path
-    - `src/tabelogmcp/` → `src/tabelog/`
+    - `src/tabelog/` → `src/tabelog/`
     - All test imports in `tests/`
     - CLAUDE.md references
     - README.md (if exists)

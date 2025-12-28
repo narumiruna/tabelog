@@ -8,9 +8,9 @@ from unittest.mock import patch
 
 import pytest
 
-from tabelogmcp.restaurant import Restaurant
-from tabelogmcp.search import SearchResponse
-from tabelogmcp.search import SearchStatus
+from tabelog.restaurant import Restaurant
+from tabelog.search import SearchResponse
+from tabelog.search import SearchStatus
 
 
 class TestCLIHelpers:
@@ -47,7 +47,7 @@ class TestCLISearch:
     """Test CLI search functionality"""
 
     @pytest.mark.asyncio
-    @patch("tabelogmcp.search.SearchRequest.do")
+    @patch("tabelog.search.SearchRequest.do")
     async def test_search_restaurants_success(self, mock_do):
         """Test successful CLI search"""
         # Mock successful response
@@ -65,7 +65,7 @@ class TestCLISearch:
             )
         ]
 
-        from tabelogmcp.search import SearchMeta
+        from tabelog.search import SearchMeta
 
         mock_response = SearchResponse(
             status=SearchStatus.SUCCESS,
@@ -165,7 +165,7 @@ class TestCLISearch:
         mock_do.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("tabelogmcp.search.SearchRequest.do")
+    @patch("tabelog.search.SearchRequest.do")
     async def test_search_restaurants_with_all_params(self, mock_do):
         """Test CLI search with all parameters"""
         mock_restaurants = [
@@ -186,7 +186,7 @@ class TestCLISearch:
             )
         ]
 
-        from tabelogmcp.search import SearchMeta
+        from tabelog.search import SearchMeta
 
         mock_response = SearchResponse(
             status=SearchStatus.SUCCESS,

@@ -905,7 +905,7 @@ wheels = [
 ]
 
 [[package]]
-name = "tabelogmcp"
+name = "tabelog"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

@@ -19,12 +19,12 @@ A Python library for searching restaurants on Tabelog using web scraping.
 ```json
 {
   "mcpServers": {
-    "tabelogmcp": {
+    "tabelog": {
       "command": "uvx",
       "args": [
         "--from",
         "git+https://github.com/narumiruna/tabelog-mcp",
-        "tabelogmcp"
+        "tabelog"
       ]
     }
   }
@@ -36,9 +36,9 @@ A Python library for searching restaurants on Tabelog using web scraping.
 ```json
 {
   "mcpServers": {
-    "tabelogmcp": {
+    "tabelog": {
       "command": "uvx",
-      "args": ["tabelogmcp@latest"]
+      "args": ["tabelog@latest"]
     }
   }
 }
@@ -49,13 +49,13 @@ A Python library for searching restaurants on Tabelog using web scraping.
 ```json
 {
   "mcpServers": {
-    "tabelogmcp": {
+    "tabelog": {
       "command": "uv",
       "args": [
         "run",
         "--directory",
         "/home/<user>/workspace/tabelog-mcp",
-        "tabelogmcp"
+        "tabelog"
       ]
     }
   }

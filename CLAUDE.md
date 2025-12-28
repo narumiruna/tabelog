@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is **tabelogmcp** - a Python library and MCP (Model Context Protocol) server for searching restaurants on Tabelog using web scraping. It provides both a Python library (`tabelog`) and an MCP server (`tabelogmcp`) for integration with AI assistants.
+This is **tabelog** - a Python library and MCP (Model Context Protocol) server for searching restaurants on Tabelog using web scraping. It provides both a Python library (`tabelog`) and an MCP server (`tabelog`) for integration with AI assistants.
 
 **See also**: [IDEAS.md](IDEAS.md) - Feature ideas, improvements, and development notes
 
@@ -53,15 +53,15 @@ uv run python examples/basic_search.py
 ### Running MCP Server
 ```bash
 # Via entry point (requires installation)
-uv run tabelogmcp
+uv run tabelog
 
 # Local development
-uv run --directory /path/to/tabelog-mcp tabelogmcp
+uv run --directory /path/to/tabelog-mcp tabelog
 ```
 
 ## Architecture
 
-### Core Modules (src/tabelogmcp/)
+### Core Modules (src/tabelog/)
 
 The codebase is intentionally simple with only 3 main files:
 
@@ -118,7 +118,7 @@ The library provides **three levels of abstraction**:
 - **Required**: Full type hints on all functions
 - **Style**: Built-in types only (e.g., `list[str]`, `dict[str, Any]`, `X | None`)
 - **Checker**: Uses `ty` (configured in Makefile and pyproject.toml)
-- **py.typed marker**: Present in `src/tabelogmcp/py.typed` for library consumers
+- **py.typed marker**: Present in `src/tabelog/py.typed` for library consumers
 
 ## Code Style
 
@@ -142,7 +142,7 @@ Configured in `.pre-commit-config.yaml`:
 - **Rate limiting**: No built-in rate limiting - users must implement for production use
 - **Legal compliance**: Library is for educational/research purposes - respect robots.txt and ToS
 - **Fallback selectors**: Parser includes backup CSS selectors for robustness
-- **No MCP server code**: Despite `tabelogmcp` package name and entry point in pyproject.toml, the actual MCP server implementation (`server.py`) is currently missing
+- **No MCP server code**: Despite `tabelog` package name and entry point in pyproject.toml, the actual MCP server implementation (`server.py`) is currently missing
 
 ## Dependencies
 

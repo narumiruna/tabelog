@@ -1,5 +1,5 @@
 [project]
-name = "tabelogmcp"
+name = "tabelog"
 version = "0.1.0"
 description = ""
 readme = "README.md"
@@ -14,7 +14,7 @@ dependencies = [
 ]
 
 [project.scripts]
-tabelogmcp = "tabelogmcp.server:main"
+tabelog = "tabelog.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -32,9 +32,9 @@ dev = [
 [tool.ruff]
 exclude = ["build"]
 line-length = 120
-ignore = ["E501", "C901"]
 
 [tool.ruff.lint]
+ignore = ["E501", "C901"]
 select = [
     "B",   # flake8-bugbear
     "C",   # flake8-comprehensions
