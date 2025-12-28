@@ -5,12 +5,14 @@ from __future__ import annotations
 from textual.app import App
 from textual.app import ComposeResult
 from textual.containers import Container
+from textual.containers import Horizontal
 from textual.widgets import Button
 from textual.widgets import DataTable
 from textual.widgets import Footer
 from textual.widgets import Header
 from textual.widgets import Input
-from textual.widgets import Select
+from textual.widgets import RadioButton
+from textual.widgets import RadioSet
 from textual.widgets import Static
 
 from .restaurant import Restaurant
@@ -23,20 +25,17 @@ class SearchPanel(Container):
 
     def compose(self) -> ComposeResult:
         """建立搜尋面板的元件"""
-        yield Static("🔍 餐廳搜尋", classes="panel-title")
-        yield Input(placeholder="地區 (例如: 東京)", id="area-input")
-        yield Input(placeholder="關鍵字 (例如: 寿司)", id="keyword-input")
-        yield Select(
-            options=[
-                ("評分排名", SortType.RANKING.value),
-                ("評論數排序", SortType.REVIEW_COUNT.value),
-                ("新開幕", SortType.NEW_OPEN.value),
-                ("標準排序", SortType.STANDARD.value),
-            ],
-            value=SortType.RANKING.value,
-            id="sort-select",
-            allow_blank=False,
-        )
+        yield Static("餐廳搜尋", classes="panel-title")
+        with Horizontal(id="input-row"):
+            yield Input(placeholder="地區 (例如: 東京)", id="area-input")
+            yield Input(placeholder="關鍵字 (例如: 寿司)", id="keyword-input")
+        with Horizontal(id="sort-row"):
+            yield Static("排序:", classes="sort-label")
+            with RadioSet(id="sort-radio"):
+                yield RadioButton("評分排名", value=True, id="sort-ranking")
+                yield RadioButton("評論數", id="sort-review")
+                yield RadioButton("新開幕", id="sort-new")
+                yield RadioButton("標準", id="sort-standard")
         yield Button("搜尋", variant="primary", id="search-button")
 
 
@@ -49,7 +48,7 @@ class ResultsTable(DataTable):
 
     def on_mount(self) -> None:
         """初始化表格欄位"""
-        self.add_columns("名稱", "評分", "評論數", "地區", "類型")
+        self.add_columns("餐廳名稱", "評分", "評論數", "地區", "類型")
 
 
 class DetailPanel(Container):
@@ -57,8 +56,8 @@ class DetailPanel(Container):
 
     def compose(self) -> ComposeResult:
         """建立詳細資訊面板的元件"""
-        yield Static("📋 餐廳詳細資訊", classes="panel-title")
-        yield Static("選擇一個餐廳查看詳細資訊", id="detail-content")
+        yield Static("詳細資訊", classes="panel-title")
+        yield Static("請選擇餐廳查看詳細資訊", id="detail-content")
 
 
 class TabelogApp(App):
@@ -70,7 +69,7 @@ class TabelogApp(App):
     }
 
     .panel-title {
-        background: $boost;
+        background: $surface-darken-1;
         color: $text;
         padding: 1;
         text-align: center;
@@ -78,37 +77,115 @@ class TabelogApp(App):
     }
 
     SearchPanel {
-        height: 15;
-        border: solid $primary;
+        height: auto;
+        border: solid $primary-lighten-1;
         padding: 1;
+        margin: 1;
+    }
+
+    #input-row {
+        height: auto;
+        margin: 1;
+        padding: 1;
+    }
+
+    #area-input, #keyword-input {
+        width: 1fr;
+        margin-right: 1;
+    }
+
+    #area-input:focus, #keyword-input:focus {
+        border: solid $success;
+    }
+
+    #sort-row {
+        height: auto;
+        margin: 0 1 1 1;
+        padding: 1;
+    }
+
+    #content-row {
+        height: 1fr;
+        margin: 0 1 1 1;
     }
 
     ResultsTable {
-        height: 1fr;
-        border: solid $secondary;
+        width: 2fr;
+        height: 100%;
+        border: solid $primary-lighten-1;
+        margin-right: 1;
+    }
+
+    ResultsTable:focus {
+        border: solid $accent;
+    }
+
+    ResultsTable > .datatable--header {
+        background: $surface-darken-1;
+        color: $text;
+        text-style: bold;
+    }
+
+    ResultsTable > .datatable--cursor {
+        background: $accent-darken-1;
+        color: $text;
     }
 
     DetailPanel {
-        height: 12;
-        border: solid $accent;
+        width: 1fr;
+        height: 100%;
+        border: solid $primary-lighten-1;
         padding: 1;
     }
 
-    Input {
-        margin: 1;
+    .sort-label {
+        width: auto;
+        padding: 0 2 0 0;
+        color: $text-muted;
+        text-style: bold;
+        content-align: center middle;
     }
 
-    Select {
-        margin: 1;
+    RadioSet {
+        width: 1fr;
+        padding: 0;
+        background: transparent;
+        layout: horizontal;
+    }
+
+    RadioButton {
+        padding: 0 2;
+        margin: 0;
+        background: transparent;
+        color: $text-muted;
+    }
+
+    RadioButton:hover {
+        color: $text;
+    }
+
+    RadioButton.-selected {
+        color: $success;
+        text-style: bold;
     }
 
     Button {
         margin: 1;
+        width: 100%;
+    }
+
+    Button:hover {
+        background: $primary-darken-1;
+    }
+
+    Button:focus {
+        border: solid $accent;
     }
 
     #detail-content {
         height: 100%;
         overflow-y: auto;
+        padding: 1;
     }
     """
 
@@ -129,8 +206,9 @@ class TabelogApp(App):
         """建立應用程式的元件"""
         yield Header()
         yield SearchPanel()
-        yield ResultsTable(id="results-table")
-        yield DetailPanel()
+        with Horizontal(id="content-row"):
+            yield ResultsTable(id="results-table")
+            yield DetailPanel()
         yield Footer()
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
@@ -158,7 +236,6 @@ class TabelogApp(App):
             # 取得輸入值
             area_input = self.query_one("#area-input", Input)
             keyword_input = self.query_one("#keyword-input", Input)
-            sort_select = self.query_one("#sort-select", Select)
 
             area = area_input.value.strip()
             keyword = keyword_input.value.strip()
@@ -169,17 +246,24 @@ class TabelogApp(App):
                 return
 
             # 取得排序方式
-            sort_value = sort_select.value or SortType.RANKING.value
-            sort_type = SortType(sort_value)
+            sort_radio = self.query_one("#sort-radio", RadioSet)
+            pressed_button = sort_radio.pressed_button
+
+            if pressed_button and pressed_button.id == "sort-review":
+                sort_type = SortType.REVIEW_COUNT
+                sort_name = "評論數排序"
+            elif pressed_button and pressed_button.id == "sort-new":
+                sort_type = SortType.NEW_OPEN
+                sort_name = "新開幕"
+            elif pressed_button and pressed_button.id == "sort-standard":
+                sort_type = SortType.STANDARD
+                sort_name = "標準排序"
+            else:
+                sort_type = SortType.RANKING
+                sort_name = "評分排名"
 
             # 顯示搜尋中訊息
             detail_content = self.query_one("#detail-content", Static)
-            sort_name = {
-                SortType.RANKING.value: "評分排名",
-                SortType.REVIEW_COUNT.value: "評論數排序",
-                SortType.NEW_OPEN.value: "新開幕",
-                SortType.STANDARD.value: "標準排序",
-            }.get(sort_value, "評分排名")
             search_params = f"地區: {area or '(無)'}, 關鍵字: {keyword or '(無)'}"
             detail_content.update(f"搜尋中 ({sort_name}): {search_params}...")
 
