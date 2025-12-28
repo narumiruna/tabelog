@@ -71,7 +71,7 @@ class TabelogApp(App):
     .panel-title {
         background: $surface-darken-1;
         color: $text;
-        padding: 1;
+        padding: 0 1;
         text-align: center;
         text-style: bold;
     }
@@ -79,14 +79,14 @@ class TabelogApp(App):
     SearchPanel {
         height: auto;
         border: solid $primary-lighten-1;
-        padding: 1;
-        margin: 1;
+        padding: 0 1 1 1;
+        margin: 1 1 0 1;
     }
 
     #input-row {
         height: auto;
-        margin: 1;
-        padding: 1;
+        margin: 0 0 1 0;
+        padding: 0;
     }
 
     #area-input, #keyword-input {
@@ -100,8 +100,8 @@ class TabelogApp(App):
 
     #sort-row {
         height: auto;
-        margin: 0 1 1 1;
-        padding: 1;
+        margin: 0;
+        padding: 0;
     }
 
     #content-row {
@@ -140,7 +140,7 @@ class TabelogApp(App):
 
     .sort-label {
         width: auto;
-        padding: 0 2 0 0;
+        padding: 0 1 0 0;
         color: $text-muted;
         text-style: bold;
         content-align: center middle;
@@ -154,7 +154,7 @@ class TabelogApp(App):
     }
 
     RadioButton {
-        padding: 0 2;
+        padding: 0 1;
         margin: 0;
         background: transparent;
         color: $text-muted;
@@ -170,7 +170,7 @@ class TabelogApp(App):
     }
 
     Button {
-        margin: 1;
+        margin: 0 0 0 1;
         width: auto;
         min-width: 20;
     }
