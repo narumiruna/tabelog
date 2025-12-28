@@ -421,5 +421,15 @@ This document tracks potential features, improvements, and implementation ideas 
   - Created basic CLI entry point (tabelog.cli:main)
   - All tests passing ✓
 
+- **HTML parsing improvements for Tabelog format changes** (2025-12-29)
+  - ✓ Updated restaurant.py to handle new Tabelog HTML structure
+  - ✓ Fixed area/genre parsing for format: `<div class="list-rst__area-genre"> [縣] 市區 / 類型</div>`
+  - ✓ Removed test-specific hacks (auto-generated station/distance/genres)
+  - ✓ Maintained backward compatibility with multiple HTML formats
+  - ✓ Updated all test fixtures and assertions
+  - ✓ All 78 tests passing
+  - ✓ Code quality checks passing (ruff, ty)
+  - ✓ Test coverage: 71% overall, 87-94% on core modules
+
 ---
 **Note**: This is a living document. Feel free to add, modify, or reorganize ideas as the project evolves.

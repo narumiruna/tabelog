@@ -68,7 +68,7 @@ uv run --directory /path/to/tabelog-mcp tabelog
 
 ### Core Modules (src/tabelog/)
 
-The codebase is intentionally simple with only 3 main files:
+The codebase has the following main files:
 
 1. **restaurant.py** - Core scraping and search implementation
    - `Restaurant` dataclass: Represents restaurant data (name, rating, reviews, prices, etc.)
@@ -76,7 +76,7 @@ The codebase is intentionally simple with only 3 main files:
    - `SortType` enum: Search sorting options (STANDARD, RANKING, REVIEW_COUNT, NEW_OPEN)
    - `PriceRange` enum: Extensive lunch/dinner price ranges (B001-B012, C001-C012)
    - `query_restaurants()` function: Cached convenience function for quick searches
-   - Key methods: `_build_params()`, `_parse_restaurants()`, `do_sync()`, `do()`
+   - Key methods: `_build_params()`, `_parse_restaurants()`, `search_sync()`, `search()`
 
 2. **search.py** - Higher-level search API with metadata and pagination
    - `SearchRequest` dataclass: Wraps `RestaurantSearchRequest` with pagination support
@@ -84,9 +84,17 @@ The codebase is intentionally simple with only 3 main files:
    - `SearchMeta` dataclass: Total counts, page info, navigation flags
    - `SearchStatus` enum: SUCCESS, NO_RESULTS, ERROR
    - Supports multi-page scraping via `max_pages` parameter
-   - Both sync (`do_sync()`) and async (`do()`) methods
+   - Both sync (`search_sync()`) and async (`search()`) methods
 
-3. **__init__.py** - Public API exports
+3. **tui.py** - Interactive terminal UI using Textual framework
+   - `TabelogApp`: Main TUI application class
+   - `SearchPanel`: Search input panel with area, keyword, and sorting options
+   - `ResultsTable`: DataTable for displaying restaurant results
+   - `DetailPanel`: Panel showing detailed restaurant information
+   - Features: RadioButton sorting, two-column layout, async worker management
+   - Entry point: `python -m tabelog.tui` or `uv run tabelog tui`
+
+4. **__init__.py** - Public API exports
    - Exports: `Restaurant`, `RestaurantSearchRequest`, `SearchRequest`, `SearchResponse`, `SortType`, `PriceRange`, `query_restaurants`
 
 ### API Patterns
@@ -101,6 +109,10 @@ The library provides **three levels of abstraction**:
 
 - **Web scraping**: Uses `httpx` for requests and `BeautifulSoup` (lxml parser) for HTML parsing
 - **CSS selectors**: Relies on specific Tabelog CSS classes (`list-rst`, `c-rating__val`, etc.)
+- **HTML format handling**: Supports multiple Tabelog HTML formats for backward compatibility:
+  - New format: `<div class="list-rst__area-genre"> [縣] 市區 / 類型</div>` (優先)
+  - Old format: `<span class="list-rst__area-genre">地區、駅名 距離</span>` (fallback)
+  - Genre extraction: Parses from area-genre field and separate `list-rst__genre` element
 - **Error handling**: Gracefully skips malformed items during parsing (try/except with continue)
 - **Caching**: `query_restaurants()` uses `@cache` decorator for performance
 - **User-Agent**: All requests include browser User-Agent to avoid bot detection
@@ -110,13 +122,15 @@ The library provides **three levels of abstraction**:
 ## Testing Strategy
 
 - **Location**: All tests in `tests/` directory
-- **Current coverage**: 96% (target: 90%+)
+- **Current coverage**: 71% overall, 87-94% on core modules (target: 90%+)
+- **Total tests**: 78 tests (all passing ✓)
 - **Test types**:
   - Unit tests: Models, validation, parameter building
   - Function tests: HTTP requests, HTML parsing, error handling
   - Integration tests: End-to-end search workflows
 - **Mocking**: Mock `httpx.get` and `httpx.AsyncClient` for HTTP tests
 - **Async**: Uses `pytest-asyncio` with `AsyncMock` for async operations
+- **Note**: TUI (tui.py) and CLI (cli.py) currently have 0% coverage (UI modules)
 
 ## Type Annotations
 

@@ -4,12 +4,13 @@ A Python library for searching restaurants on Tabelog using web scraping.
 
 ## Features
 
-- Comprehensive Search: Search by area, keyword, date, time, party size, and more
-- Rich Data: Extract restaurant details including ratings, reviews, prices, and availability
-- Async Support: Both synchronous and asynchronous API
-- Type Safe: Full type hints with Pydantic models
-- Flexible: Multiple search interfaces from simple to advanced
-- Easy to Use: Simple API inspired by the wisest library
+- **Comprehensive Search**: Search by area, keyword, date, time, party size, and more
+- **Rich Data**: Extract restaurant details including ratings, reviews, prices, and availability
+- **Interactive TUI**: Beautiful terminal UI for interactive restaurant search (新!)
+- **Async Support**: Both synchronous and asynchronous API
+- **Type Safe**: Full type hints with type checking
+- **Flexible**: Multiple search interfaces from simple to advanced
+- **Easy to Use**: Simple and intuitive API
 
 
 ## Usage
@@ -77,7 +78,28 @@ pip install tabelog
 
 ## Quick Start
 
-### Basic Search
+### Interactive TUI (推薦!)
+
+啟動美觀的終端介面來搜尋餐廳：
+
+```bash
+# 使用 uv
+uv run tabelog tui
+
+# 或直接使用 Python
+python -m tabelog.tui
+```
+
+TUI 特色：
+- 🎨 簡潔美觀的深色主題
+- 🔍 即時搜尋結果（地區、關鍵字、排序）
+- 📊 雙欄式顯示（結果列表 + 詳細資訊）
+- ⌨️  完整鍵盤導航支援
+- 🚀 自動取消前次搜尋，避免卡住
+
+詳細使用說明請參考 [TUI_USAGE.md](TUI_USAGE.md)
+
+### Basic Search (程式庫)
 
 ```python
 from tabelog import query_restaurants, SortType
