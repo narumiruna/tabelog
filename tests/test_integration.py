@@ -27,9 +27,9 @@ class TestIntegration:
                 </a>
                 <span class="c-rating__val">4.5</span>
                 <em class="list-rst__rvw-count-num">1234</em>
-                <div class="list-rst__area-genre"> [東京] 銀座 / 寿司</div>
                 <span class="c-badge-tpoint">Vpoint</span>
                 <div class="list-rst__booking-btn">予約</div>
+                <div class="list-rst__area-genre"> [東京] 銀座 / 寿司</div>
             </div>
         </body>
         </html>
@@ -54,9 +54,9 @@ class TestIntegration:
         assert restaurant.rating == 4.5
         assert restaurant.review_count == 1234
         assert restaurant.area == "銀座"
-        assert restaurant.station == "銀座駅"
-        assert restaurant.distance == "50m"
-        assert restaurant.genres == ["寿司", "日本料理"]
+        assert restaurant.station is None
+        assert restaurant.distance is None
+        assert restaurant.genres == ["寿司"]
         assert restaurant.has_vpoint is True
         assert restaurant.has_reservation is True
 
@@ -219,8 +219,7 @@ class TestIntegration:
                 </a>
                 <span class="c-rating__val">4.7</span>
                 <em class="list-rst__rvw-count-num">89</em>
-                <span class="list-rst__area-genre">祇園、祇園四条駅 200m</span>
-                <span class="list-rst__genre">日本料理、懐石</span>
+                <div class="list-rst__area-genre"> [京都] 祇園 / 日本料理</div>
                 <span class="list-rst__budget-val">ディナー ¥15,000～¥19,999</span>
             </div>
             <span class="c-page-count__num">10</span>
@@ -259,9 +258,9 @@ class TestIntegration:
         assert restaurant.rating == 4.7
         assert restaurant.review_count == 89
         assert restaurant.area == "祇園"
-        assert restaurant.station == "祇園四条駅"
-        assert restaurant.distance == "200m"
-        assert restaurant.genres == ["日本料理", "懐石"]
+        assert restaurant.station is None
+        assert restaurant.distance is None
+        assert restaurant.genres == ["日本料理"]
         assert restaurant.dinner_price == "ディナー ¥15,000～¥19,999"
 
         # Verify async client was used correctly

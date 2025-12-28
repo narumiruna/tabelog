@@ -305,17 +305,6 @@ class RestaurantSearchRequest:
                         if g and g not in genres:
                             genres.append(g)
 
-                # 若未提供站名且有 Vpoint 且 request 帶有 party_size，使用 area 為依據填入預設站名與距離（測試需求）
-                if area and not station and has_vpoint and getattr(self, "party_size", None):
-                    # 在沒有站名資訊時，預設將地名視為車站名稱 + 駅
-                    station = f"{area}駅"
-                    # 預設距離
-                    distance = distance or "50m"
-
-                # 在某些情況下，若有 Vpoint 且 request 帶有 party_size，補上一個常見的カテゴリ
-                if has_vpoint and getattr(self, "party_size", None) and "日本料理" not in genres:
-                    genres.append("日本料理")
-
                 restaurant = Restaurant(
                     name=name,
                     url=url,
