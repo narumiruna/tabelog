@@ -7,6 +7,8 @@ A Python library for searching restaurants on Tabelog using web scraping.
 - **Comprehensive Search**: Search by area, keyword, date, time, party size, and more
 - **Rich Data**: Extract restaurant details including ratings, reviews, prices, and availability
 - **Interactive TUI**: Beautiful terminal UI for interactive restaurant search (新!)
+  - **Area Suggestion**: Smart area/station suggestions with F2 key (新!)
+  - **Accurate Area Filtering**: Prefecture-level filtering for all 47 prefectures (新!)
 - **Async Support**: Both synchronous and asynchronous API
 - **Type Safe**: Full type hints with type checking
 - **Flexible**: Multiple search interfaces from simple to advanced
@@ -96,6 +98,8 @@ TUI 特色：
 - 📊 雙欄式顯示（結果列表 + 詳細資訊）
 - ⌨️  完整鍵盤導航支援
 - 🚀 自動取消前次搜尋，避免卡住
+- 🗺️ **智慧型地區建議（F2）**：自動提供都道府縣、車站、地區選項
+- ✅ **準確地區過濾**：支援 47 個都道府縣的地區限制
 
 詳細使用說明請參考 [TUI_USAGE.md](TUI_USAGE.md)
 

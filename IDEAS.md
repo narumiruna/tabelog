@@ -366,6 +366,23 @@ This document tracks potential features, improvements, and implementation ideas 
 
 ## ✅ Completed
 
+- **Area filtering and suggestion system** (2025-12-29)
+  - ✓ Fixed critical bug: Tabelog's `/rst/rstsearch?sa=area` does NOT filter by area
+  - ✓ Implemented path-based URL filtering (e.g., `/tokyo/rstLst/` instead of `/rst/rstsearch?sa=東京`)
+  - ✓ Created `area_mapping.py` with mappings for all 47 prefectures
+  - ✓ Added `get_area_slug()` function to convert area names to URL slugs
+  - ✓ Updated `RestaurantSearchRequest.search()` to use area slug paths
+  - ✓ Updated `SearchRequest.search()` to use area slug paths
+  - ✓ Integrated Tabelog's internal suggest API (`/internal_api/suggest_form_words`)
+  - ✓ Created `suggest.py` with `AreaSuggestion` dataclass and async/sync functions
+  - ✓ Added `AreaSuggestModal` to TUI with F2 hotkey
+  - ✓ Visual feedback for suggestion loading (🔍/✅/❌ icons)
+  - ✓ Modal UI with OptionList for area/station selection
+  - ✓ Prefecture-level filtering now works accurately (no more national results)
+  - ✓ All code quality checks passing (ruff, ty)
+  - ✓ Documentation updated (CLAUDE.md, README.md, TUI_USAGE.md)
+  - Note: City/station-level filtering not supported (Tabelog limitation)
+
 - **Terminal UI (TUI) for interactive restaurant search** (2025-12-28/29)
   - ✓ Created interactive terminal UI using Textual framework
   - ✓ Search panel with area and keyword input

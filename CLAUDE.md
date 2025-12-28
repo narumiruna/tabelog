@@ -77,6 +77,7 @@ The codebase has the following main files:
    - `PriceRange` enum: Extensive lunch/dinner price ranges (B001-B012, C001-C012)
    - `query_restaurants()` function: Cached convenience function for quick searches
    - Key methods: `_build_params()`, `_parse_restaurants()`, `search_sync()`, `search()`
+   - **Area filtering**: Uses area slug paths (e.g., `/tokyo/rstLst/`) for accurate prefecture-level filtering
 
 2. **search.py** - Higher-level search API with metadata and pagination
    - `SearchRequest` dataclass: Wraps `RestaurantSearchRequest` with pagination support
@@ -85,17 +86,31 @@ The codebase has the following main files:
    - `SearchStatus` enum: SUCCESS, NO_RESULTS, ERROR
    - Supports multi-page scraping via `max_pages` parameter
    - Both sync (`search_sync()`) and async (`search()`) methods
+   - **Area filtering**: Automatically uses area slug paths when prefecture can be mapped
 
-3. **tui.py** - Interactive terminal UI using Textual framework
+3. **area_mapping.py** - Area name to URL slug mapping
+   - `PREFECTURE_MAPPING`: Maps all 47 prefectures to Tabelog URL slugs
+   - `CITY_MAPPING`: Maps major cities to URL slugs (tokyo, osaka, kyoto, etc.)
+   - `get_area_slug()`: Converts area names (東京都, 大阪府) to URL slugs (tokyo, osaka)
+   - **Purpose**: Enables accurate area filtering by using Tabelog's path-based filtering
+
+4. **suggest.py** - Area suggestion API integration
+   - `AreaSuggestion` dataclass: Represents area/station suggestions from Tabelog
+   - `get_area_suggestions()`: Sync function to get area suggestions
+   - `get_area_suggestions_async()`: Async function to get area suggestions
+   - **API**: Uses `https://tabelog.com/internal_api/suggest_form_words`
+
+5. **tui.py** - Interactive terminal UI using Textual framework
    - `TabelogApp`: Main TUI application class
    - `SearchPanel`: Search input panel with area, keyword, and sorting options
    - `ResultsTable`: DataTable for displaying restaurant results
    - `DetailPanel`: Panel showing detailed restaurant information
-   - Features: RadioButton sorting, two-column layout, async worker management
+   - `AreaSuggestModal`: Modal popup for area suggestions (F2 key)
+   - Features: RadioButton sorting, two-column layout, async worker management, area autocomplete
    - Entry point: `python -m tabelog.tui` or `uv run tabelog tui`
 
-4. **__init__.py** - Public API exports
-   - Exports: `Restaurant`, `RestaurantSearchRequest`, `SearchRequest`, `SearchResponse`, `SortType`, `PriceRange`, `query_restaurants`
+6. **__init__.py** - Public API exports
+   - Exports: `Restaurant`, `RestaurantSearchRequest`, `SearchRequest`, `SearchResponse`, `SortType`, `PriceRange`, `query_restaurants`, `AreaSuggestion`, `get_area_suggestions`, `get_area_suggestions_async`
 
 ### API Patterns
 
@@ -113,6 +128,12 @@ The library provides **three levels of abstraction**:
   - New format: `<div class="list-rst__area-genre"> [縣] 市區 / 類型</div>` (優先)
   - Old format: `<span class="list-rst__area-genre">地區、駅名 距離</span>` (fallback)
   - Genre extraction: Parses from area-genre field and separate `list-rst__genre` element
+- **Area filtering** (CRITICAL):
+  - **Problem**: Tabelog's `/rst/rstsearch?sa=area` endpoint DOES NOT filter by area - always returns national results
+  - **Solution**: Use path-based URLs (e.g., `/tokyo/rstLst/` instead of `/rst/rstsearch?sa=東京`)
+  - **Implementation**: `area_mapping.py` maps prefecture names to URL slugs, automatically used in search methods
+  - **Limitation**: Only works for 47 prefectures + major cities; city/station-level filtering not supported
+  - **Fallback**: If area cannot be mapped to slug, falls back to `/rst/rstsearch` (returns national results)
 - **Error handling**: Gracefully skips malformed items during parsing (try/except with continue)
 - **Caching**: `query_restaurants()` uses `@cache` decorator for performance
 - **User-Agent**: All requests include browser User-Agent to avoid bot detection
