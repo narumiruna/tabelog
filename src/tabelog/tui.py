@@ -36,7 +36,7 @@ class SearchPanel(Container):
                 yield RadioButton("評論數", id="sort-review")
                 yield RadioButton("新開幕", id="sort-new")
                 yield RadioButton("標準", id="sort-standard")
-        yield Button("搜尋", variant="primary", id="search-button")
+            yield Button("搜尋", variant="primary", id="search-button")
 
 
 class ResultsTable(DataTable):
@@ -171,7 +171,8 @@ class TabelogApp(App):
 
     Button {
         margin: 1;
-        width: 100%;
+        width: auto;
+        min-width: 20;
     }
 
     Button:hover {
