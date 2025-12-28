@@ -10,6 +10,7 @@ from textual.widgets import DataTable
 from textual.widgets import Footer
 from textual.widgets import Header
 from textual.widgets import Input
+from textual.widgets import Select
 from textual.widgets import Static
 
 from .restaurant import Restaurant
@@ -24,6 +25,18 @@ class SearchPanel(Container):
         yield Static("🔍 餐廳搜尋", classes="panel-title")
         yield Input(placeholder="地區 (例如: 東京)", id="area-input")
         yield Input(placeholder="關鍵字 (例如: 寿司)", id="keyword-input")
+        yield Select(
+            options=[
+                ("評分高到低", "rating_desc"),
+                ("評分低到高", "rating_asc"),
+                ("評論數多到少", "review_count_desc"),
+                ("評論數少到多", "review_count_asc"),
+                ("儲存數多到少", "save_count_desc"),
+            ],
+            value="rating_desc",
+            id="sort-select",
+            allow_blank=False,
+        )
         yield Button("搜尋", variant="primary", id="search-button")
 
 
@@ -65,7 +78,7 @@ class TabelogApp(App):
     }
 
     SearchPanel {
-        height: 12;
+        height: 15;
         border: solid $primary;
         padding: 1;
     }
@@ -82,6 +95,10 @@ class TabelogApp(App):
     }
 
     Input {
+        margin: 1;
+    }
+
+    Select {
         margin: 1;
     }
 
@@ -130,6 +147,7 @@ class TabelogApp(App):
         # 取得輸入值
         area_input = self.query_one("#area-input", Input)
         keyword_input = self.query_one("#keyword-input", Input)
+        sort_select = self.query_one("#sort-select", Select)
 
         area = area_input.value.strip()
         keyword = keyword_input.value.strip()
@@ -139,9 +157,19 @@ class TabelogApp(App):
             detail_content.update("請輸入地區或關鍵字")
             return
 
+        # 取得排序方式
+        sort_value = sort_select.value or "rating_desc"
+
         # 顯示搜尋中訊息
         detail_content = self.query_one("#detail-content", Static)
-        detail_content.update(f"搜尋中: {area} {keyword}...")
+        sort_name = {
+            "rating_desc": "評分高到低",
+            "rating_asc": "評分低到高",
+            "review_count_desc": "評論數多",
+            "review_count_asc": "評論數少",
+            "save_count_desc": "儲存數多",
+        }.get(sort_value, "評分高到低")
+        detail_content.update(f"搜尋中 ({sort_name}): {area} {keyword}...")
 
         # 建立搜尋請求
         request = SearchRequest(area=area, keyword=keyword)
@@ -151,9 +179,21 @@ class TabelogApp(App):
             response = await request.search()
 
             if response.restaurants:
+                # 依選擇的方式排序結果
+                if sort_value == "rating_desc":
+                    response = response.sort_by("rating", reverse=True)
+                elif sort_value == "rating_asc":
+                    response = response.sort_by("rating", reverse=False)
+                elif sort_value == "review_count_desc":
+                    response = response.sort_by("review_count", reverse=True)
+                elif sort_value == "review_count_asc":
+                    response = response.sort_by("review_count", reverse=False)
+                elif sort_value == "save_count_desc":
+                    response = response.sort_by("save_count", reverse=True)
+
                 self.restaurants = response.restaurants
                 self.update_results_table()
-                detail_content.update(f"找到 {len(self.restaurants)} 家餐廳")
+                detail_content.update(f"找到 {len(self.restaurants)} 家餐廳 ({sort_name})")
             else:
                 self.restaurants = []
                 table = self.query_one("#results-table", ResultsTable)
