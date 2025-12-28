@@ -1,15 +1,15 @@
 from __future__ import annotations
 
 import contextlib
+import re
+from dataclasses import dataclass
+from dataclasses import field
 from enum import Enum
 from functools import cache
 from typing import Any
 
 import httpx
 from bs4 import BeautifulSoup
-from pydantic import BaseModel
-from pydantic import Field
-from pydantic import field_validator
 
 
 class SortType(str, Enum):
@@ -51,7 +51,8 @@ class PriceRange(str, Enum):
     DINNER_OVER_30000 = "C012"  # ディナー ￥30,000～
 
 
-class Restaurant(BaseModel):
+@dataclass
+class Restaurant:
     """餐廳資訊"""
 
     name: str
@@ -62,65 +63,58 @@ class Restaurant(BaseModel):
     area: str | None = None
     station: str | None = None
     distance: str | None = None
-    genres: list[str] = Field(default_factory=list)
+    genres: list[str] = field(default_factory=list)
     description: str | None = None
     lunch_price: str | None = None
     dinner_price: str | None = None
     has_vpoint: bool = False
     has_reservation: bool = False
-    image_urls: list[str] = Field(default_factory=list)
+    image_urls: list[str] = field(default_factory=list)
 
 
-class RestaurantSearchRequest(BaseModel):
+@dataclass
+class RestaurantSearchRequest:
+    def __post_init__(self):
+        # 自動去除 area/keyword 前後空白
+        if self.area is not None:
+            self.area = self.area.strip()
+        if self.keyword is not None:
+            self.keyword = self.keyword.strip()
+
+        # 驗證日期格式 YYYYMMDD
+        if self.reservation_date is not None and not re.fullmatch(r"\d{8}", self.reservation_date):
+            raise ValueError("reservation_date must be YYYYMMDD")
+
+        # 驗證時間格式 HHMM
+        if self.reservation_time is not None and not re.fullmatch(r"\d{4}", self.reservation_time):
+            raise ValueError("reservation_time must be HHMM")
+
     """餐廳搜尋請求"""
 
     # 基本搜尋參數
-    area: str | None = Field(default=None, description="地區/車站")
-    keyword: str | None = Field(default=None, description="關鍵字")
+    area: str | None = None
+    keyword: str | None = None
 
     # 預約相關
-    reservation_date: str | None = Field(default=None, description="預約日期 (YYYYMMDD)")
-    reservation_time: str | None = Field(default=None, description="預約時間 (HHMM)")
-    party_size: int | None = Field(default=None, description="預約人數")
+    reservation_date: str | None = None  # YYYYMMDD
+    reservation_time: str | None = None  # HHMM
+    party_size: int | None = None
 
     # 排序和分頁
-    sort_type: SortType = Field(default=SortType.STANDARD, description="排序方式")
-    page: int = Field(default=1, description="頁碼")
+    sort_type: SortType = SortType.STANDARD
+    page: int = 1
 
     # 過濾條件
-    price_range: PriceRange | None = Field(default=None, description="價格範圍")
-    online_booking_only: bool = Field(default=False, description="僅顯示可網路預約")
-    seat_only: bool = Field(default=False, description="僅顯示座位預約")
-    new_open: bool = Field(default=False, description="新開店")
+    price_range: PriceRange | None = None
+    online_booking_only: bool = False
+    seat_only: bool = False
+    new_open: bool = False
 
     # 餐廳特色
-    has_private_room: bool = Field(default=False, description="有包廂")
-    has_parking: bool = Field(default=False, description="有停車場")
-    smoking_allowed: bool = Field(default=False, description="允許吸菸")
-    card_accepted: bool = Field(default=False, description="接受信用卡")
-
-    @field_validator("area", "keyword")
-    @classmethod
-    def strip_whitespace(cls, v: str | None) -> str | None:
-        return v.strip() if v else None
-
-    @field_validator("reservation_date")
-    @classmethod
-    def validate_date(cls, v: str | None) -> str | None:
-        if v is None:
-            return None
-        if len(v) != 8 or not v.isdigit():
-            raise ValueError("日期格式必須為 YYYYMMDD")
-        return v
-
-    @field_validator("reservation_time")
-    @classmethod
-    def validate_time(cls, v: str | None) -> str | None:
-        if v is None:
-            return None
-        if len(v) != 4 or not v.isdigit():
-            raise ValueError("時間格式必須為 HHMM")
-        return v
+    has_private_room: bool = False
+    has_parking: bool = False
+    smoking_allowed: bool = False
+    card_accepted: bool = False
 
     def _build_params(self) -> dict[str, Any]:
         """構建搜尋參數"""

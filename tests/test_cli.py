@@ -47,7 +47,7 @@ class TestCLISearch:
     """Test CLI search functionality"""
 
     @pytest.mark.asyncio
-    @patch("tabelog.search.SearchRequest.do")
+    @patch("tabelogmcp.search.SearchRequest.do")
     async def test_search_restaurants_success(self, mock_do):
         """Test successful CLI search"""
         # Mock successful response
@@ -165,7 +165,7 @@ class TestCLISearch:
         mock_do.assert_called_once()
 
     @pytest.mark.asyncio
-    @patch("tabelog.search.SearchRequest.do")
+    @patch("tabelogmcp.search.SearchRequest.do")
     async def test_search_restaurants_with_all_params(self, mock_do):
         """Test CLI search with all parameters"""
         mock_restaurants = [

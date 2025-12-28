@@ -111,7 +111,7 @@ class TestRestaurantSearchRequest:
         assert call_args[1]["url"] == "https://tabelog.com/rst/rstsearch"
         assert call_args[1]["params"]["sa"] == "銀座"
         assert call_args[1]["params"]["sk"] == "寿司"
-        assert call_args[1]["params"]["svps"] == 2
+        assert int(call_args[1]["params"]["svps"]) == 2
         assert call_args[1]["follow_redirects"] is True
 
     @pytest.mark.asyncio
@@ -178,7 +178,7 @@ class TestRestaurantSearchRequest:
 class TestQueryRestaurants:
     """Test query_restaurants function"""
 
-    @patch("tabelog.restaurant.RestaurantSearchRequest.do_sync")
+    @patch("tabelogmcp.restaurant.RestaurantSearchRequest.do_sync")
     def test_query_restaurants_basic(self, mock_do_sync):
         """Test basic query_restaurants function"""
         mock_restaurants = [
@@ -201,7 +201,7 @@ class TestQueryRestaurants:
         # Check that do_sync was called
         mock_do_sync.assert_called_once()
 
-    @patch("tabelog.restaurant.RestaurantSearchRequest.do_sync")
+    @patch("tabelogmcp.restaurant.RestaurantSearchRequest.do_sync")
     def test_query_restaurants_with_filters(self, mock_do_sync):
         """Test query_restaurants with filters"""
         mock_restaurants = [Restaurant(name="テスト", url="https://test.com")]
@@ -222,7 +222,7 @@ class TestQueryRestaurants:
         assert len(restaurants) == 1
         mock_do_sync.assert_called_once()
 
-    @patch("tabelog.restaurant.RestaurantSearchRequest.do_sync")
+    @patch("tabelogmcp.restaurant.RestaurantSearchRequest.do_sync")
     def test_query_restaurants_caching(self, mock_do_sync):
         """Test that query_restaurants uses caching"""
         mock_restaurants = [Restaurant(name="テスト", url="https://test.com")]
@@ -244,7 +244,7 @@ class TestQueryRestaurants:
         # do_sync should only be called once due to caching
         mock_do_sync.assert_called_once()
 
-    @patch("tabelog.restaurant.RestaurantSearchRequest.do_sync")
+    @patch("tabelogmcp.restaurant.RestaurantSearchRequest.do_sync")
     def test_query_restaurants_no_cache_different_params(self, mock_do_sync):
         """Test that different parameters don't use cache"""
         mock_restaurants = [Restaurant(name="テスト", url="https://test.com")]

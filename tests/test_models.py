@@ -1,7 +1,4 @@
-"""Test Pydantic models"""
-
 import pytest
-from pydantic import ValidationError
 
 from tabelogmcp.restaurant import PriceRange
 from tabelogmcp.restaurant import Restaurant
@@ -110,29 +107,29 @@ class TestRestaurantSearchRequest:
         assert request.keyword is None
 
     def test_date_validation(self):
-        """Test reservation date validation"""
+        """Test reservation date validation (dataclass version)"""
         # Valid date
         request = RestaurantSearchRequest(reservation_date="20250715")
         assert request.reservation_date == "20250715"
 
-        # Invalid date format
-        with pytest.raises(ValidationError):
+        # Invalid date format should raise ValueError
+        with pytest.raises(ValueError):
             RestaurantSearchRequest(reservation_date="2025-07-15")
 
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             RestaurantSearchRequest(reservation_date="invalid")
 
     def test_time_validation(self):
-        """Test reservation time validation"""
+        """Test reservation time validation (dataclass version)"""
         # Valid time
         request = RestaurantSearchRequest(reservation_time="1900")
         assert request.reservation_time == "1900"
 
-        # Invalid time format
-        with pytest.raises(ValidationError):
+        # Invalid time format should raise ValueError
+        with pytest.raises(ValueError):
             RestaurantSearchRequest(reservation_time="19:00")
 
-        with pytest.raises(ValidationError):
+        with pytest.raises(ValueError):
             RestaurantSearchRequest(reservation_time="invalid")
 
     def test_build_params(self):
@@ -155,9 +152,9 @@ class TestRestaurantSearchRequest:
         assert params["sk"] == "寿司"
         assert params["svd"] == "20250715"
         assert params["svt"] == "1900"
-        assert params["svps"] == 2
+        assert int(params["svps"]) == 2
         assert params["SrtT"] == "rt"
-        assert params["PG"] == 1
+        assert int(params["PG"]) == 1
         assert params["LstCos"] == "C005"
         assert params["ChkOnlineBooking"] == "1"
         assert params["ChkRoom"] == "1"
@@ -168,7 +165,7 @@ class TestRestaurantSearchRequest:
         params = request._build_params()
 
         assert params["SrtT"] == "trend"
-        assert params["PG"] == 1
+        assert int(params["PG"]) == 1
         assert "sa" not in params
         assert "sk" not in params
 

@@ -67,7 +67,7 @@ class TestIntegration:
         assert call_args[1]["url"] == "https://tabelog.com/rst/rstsearch"
         assert call_args[1]["params"]["sa"] == "銀座"
         assert call_args[1]["params"]["sk"] == "寿司"
-        assert call_args[1]["params"]["svps"] == 2
+        assert int(call_args[1]["params"]["svps"]) == 2
         assert call_args[1]["params"]["SrtT"] == "rt"
 
     @patch("httpx.get")
@@ -131,7 +131,7 @@ class TestIntegration:
         assert params["sk"] == "焼肉"
         assert params["svd"] == "20250715"
         assert params["svt"] == "1900"
-        assert params["svps"] == 4
+        assert int(params["svps"]) == 4
         assert params["SrtT"] == "rt"
         assert params["LstCos"] == "C005"
         assert params["ChkOnlineBooking"] == "1"
