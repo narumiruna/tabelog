@@ -4,6 +4,87 @@ This document tracks potential features, improvements, and implementation ideas 
 
 ## 🎯 Planned Features
 
+### Post-MCP Refactor (2025-12)
+
+**Status**: After refactoring MCP server to FastMCP (v0.0.2 → v0.1.0)
+- ✅ Migrated from low-level Server API to FastMCP
+- ✅ Added Pydantic Output Schemas
+- ✅ Implemented Tool Annotations
+- ✅ Comprehensive error handling
+- ✅ Tool naming with `tabelog_` prefix
+
+**Current Test Coverage**: 52% (MCP server: 0%, suggest.py: 24%)
+
+#### 🔴 High Priority (Immediate)
+
+- [ ] **MCP Server Testing** ⭐ Most Important
+  - Write tests for all 4 tools (`tabelog_search_restaurants`, `tabelog_list_cuisines`, `tabelog_get_area_suggestions`, `tabelog_get_keyword_suggestions`)
+  - Test parameter validation and error handling
+  - Test Pydantic schema outputs
+  - Mock HTTP requests to avoid real network calls
+  - **Goal**: Increase coverage from 0% to 80%+
+  - **Estimated time**: 1-2 hours
+  - **Priority**: Critical - just refactored, need stability
+
+- [ ] **Create CHANGELOG.md**
+  - Document v0.0.2 → v0.1.0 changes (MCP refactor)
+  - Follow Keep a Changelog format
+  - Include BREAKING CHANGES section (tool name changes)
+  - **Estimated time**: 15-30 minutes
+
+- [ ] **Improve low-coverage modules**
+  - `suggest.py`: 24% → 80%+ (test area/keyword suggestion APIs)
+  - `genre_mapping.py`: 45% → 90%+ (test all 45+ cuisine mappings)
+  - `area_mapping.py`: 67% → 90%+ (test all 47 prefecture mappings)
+  - **Goal**: Overall coverage 52% → 65%+
+  - **Estimated time**: 1-1.5 hours
+
+#### 🟡 Medium Priority (Short-term)
+
+- [ ] **Version Release Preparation**
+  - Complete MCP server tests
+  - Update CHANGELOG.md
+  - Decide: v0.1.0 (major refactor) or v0.0.3 (minor update)
+  - Create GitHub Release with release notes
+  - Test PyPI publish workflow
+
+- [ ] **Enhanced MCP Error Messages**
+  - Add fuzzy matching for cuisine suggestions
+  - Example: "Unknown cuisine 'すきやき'. Did you mean: すき焼き, 焼き鳥, 焼肉?"
+  - Implement using `difflib.get_close_matches()` or Levenshtein distance
+  - More specific error context and next steps
+
+- [ ] **MCP Server Usage Examples**
+  - Create `examples/mcp_examples.md` with common patterns
+  - Add code examples for complex workflows
+  - Document error handling patterns
+  - Include Claude Desktop integration examples
+  - Multi-step search workflows (area suggest → search → refine)
+
+- [ ] **MCP Server Documentation**
+  - Add detailed tool descriptions in README
+  - Parameter validation rules and constraints
+  - Output schema documentation
+  - Common use cases and anti-patterns
+
+#### 🟢 Low Priority (Long-term)
+
+- [ ] **CLI/TUI Testing**
+  - `cli.py`: 0% → 60%+ (use `typer.testing.CliRunner`)
+  - `tui.py`: 0% → 40%+ (use Textual testing utilities)
+  - Note: Lower priority as these are UI components
+
+- [ ] **Complete detail.py TODOs**
+  - Parse more basic info from restaurant main page
+  - Currently has 2 TODO comments
+  - Not critical, can defer
+
+- [ ] **Implement Easy IDEAS.md Features**
+  - Concurrent multi-page scraping (`asyncio.gather()`)
+  - Restaurant comparison tool
+  - Export to CSV/JSON formats
+  - Response compression (gzip/brotli)
+
 ### Future Considerations
 
 - [ ] **Enhanced testing**
