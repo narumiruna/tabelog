@@ -218,6 +218,14 @@ def tui() -> None:
     tui_main()
 
 
+@app.command()
+def mcp() -> None:
+    """啟動 MCP (Model Context Protocol) 伺服器"""
+    from .server import run
+
+    run()
+
+
 def main() -> None:
     """主程式進入點"""
     app()

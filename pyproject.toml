@@ -18,7 +18,6 @@ dependencies = [
 
 [project.scripts]
 gurume = "gurume.cli:main"
-gurume-mcp = "gurume.server:run"
 
 [build-system]
 requires = ["hatchling"]

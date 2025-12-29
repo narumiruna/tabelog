@@ -276,7 +276,7 @@ async def main() -> None:
 def run() -> None:
     """Synchronous entry point for CLI
 
-    This function is called when running 'gurume-mcp' command.
+    This function is called when running 'gurume mcp' command.
     """
     asyncio.run(main())
 
