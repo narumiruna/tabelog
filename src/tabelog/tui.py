@@ -20,6 +20,8 @@ from textual.widgets import RadioButton
 from textual.widgets import RadioSet
 from textual.widgets import Static
 
+from .genre_mapping import get_all_genres
+from .genre_mapping import get_genre_code
 from .llm import parse_user_input
 from .restaurant import Restaurant
 from .restaurant import SortType
@@ -102,6 +104,79 @@ class AreaSuggestModal(ModalScreen[str]):
             self.dismiss(None)
 
 
+class GenreSuggestModal(ModalScreen[str]):
+    """料理類別建議彈出視窗"""
+
+    CSS = """
+    GenreSuggestModal {
+        align: center middle;
+    }
+
+    #genre-dialog {
+        width: 70;
+        height: auto;
+        max-height: 30;
+        border: heavy $accent;
+        background: $surface;
+        padding: 1;
+    }
+
+    #genre-title {
+        text-align: center;
+        text-style: bold;
+        background: $accent;
+        color: $text;
+        padding: 1;
+        margin-bottom: 1;
+    }
+
+    #genre-list {
+        height: auto;
+        max-height: 23;
+        border: solid $primary-lighten-1;
+        padding: 0;
+    }
+
+    #genre-list:focus {
+        border: solid $success;
+    }
+
+    #genre-hint {
+        text-align: center;
+        color: $text-muted;
+        padding: 1 0 0 0;
+        margin-top: 1;
+    }
+    """
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.genres = get_all_genres()
+
+    def compose(self) -> ComposeResult:
+        """建立彈出視窗的元件"""
+        with Vertical(id="genre-dialog"):
+            yield Label(f"🍽️  料理類別（共 {len(self.genres)} 個）", id="genre-title")
+            option_list = OptionList(id="genre-list")
+            for genre in self.genres:
+                # 使用不同的圖標來區分料理類別
+                option_list.add_option(f"🍜  {genre}")
+            yield option_list
+            yield Static("💡 提示：使用 ↑↓ 方向鍵選擇，Enter 確認，Esc 取消", id="genre-hint")
+
+    @on(OptionList.OptionSelected)
+    def on_option_selected(self, event: OptionList.OptionSelected) -> None:
+        """處理選項選擇事件"""
+        if event.option_index < len(self.genres):
+            selected = self.genres[event.option_index]
+            self.dismiss(selected)
+
+    def on_key(self, event) -> None:
+        """處理鍵盤事件"""
+        if event.key == "escape":
+            self.dismiss(None)
+
+
 class SearchPanel(Container):
     """搜尋輸入面板"""
 
@@ -110,7 +185,9 @@ class SearchPanel(Container):
         yield Static("餐廳搜尋", classes="panel-title")
         with Horizontal(id="input-row"):
             yield Input(placeholder="地區 (例如: 東京, 按 F2 查看建議)", id="area-input")
-            yield Input(placeholder="關鍵字 (例如: 寿司, 或輸入自然語言後按 F3 解析)", id="keyword-input")
+            yield Input(
+                placeholder="關鍵字 (例如: 寿司, 按 F4 選擇料理類別, 或輸入自然語言後按 F3 解析)", id="keyword-input"
+            )
         with Horizontal(id="sort-row"):
             yield Static("排序:", classes="sort-label")
             with RadioSet(id="sort-radio"):
@@ -279,6 +356,7 @@ class TabelogApp(App):
         ("d", "focus_detail", "Detail"),
         ("f2", "show_area_suggest", "Area Suggest"),
         ("f3", "parse_natural_language", "AI Parse"),
+        ("f4", "show_genre_suggest", "Genre Suggest"),
     ]
 
     def __init__(self, **kwargs):
@@ -286,6 +364,7 @@ class TabelogApp(App):
         self.restaurants: list[Restaurant] = []
         self.selected_restaurant: Restaurant | None = None
         self.search_worker = None
+        self.current_genre_code: str | None = None  # 當前選擇的料理類別代碼
 
     def compose(self) -> ComposeResult:
         """建立應用程式的元件"""
@@ -349,11 +428,18 @@ class TabelogApp(App):
 
             # 顯示搜尋中訊息
             detail_content = self.query_one("#detail-content", Static)
+            genre_name = ""
+            if self.current_genre_code:
+                from .genre_mapping import get_genre_name_by_code
+
+                genre_name = get_genre_name_by_code(self.current_genre_code) or ""
             search_params = f"地區: {area or '(無)'}, 關鍵字: {keyword or '(無)'}"
+            if genre_name:
+                search_params += f", 料理類別: {genre_name}"
             detail_content.update(f"搜尋中 ({sort_name}): {search_params}...")
 
-            # 建立搜尋請求（使用 Tabelog 的排序）
-            request = SearchRequest(area=area, keyword=keyword, sort_type=sort_type)
+            # 建立搜尋請求（使用 Tabelog 的排序和料理類別代碼）
+            request = SearchRequest(area=area, keyword=keyword, genre_code=self.current_genre_code, sort_type=sort_type)
 
             # 執行搜尋
             response = await request.search()
@@ -532,6 +618,32 @@ URL: {r.url}
                 f"• API 呼叫限制\n\n"
                 f"💡 建議改用手動輸入地區和關鍵字"
             )
+
+    async def action_show_genre_suggest(self) -> None:
+        """顯示料理類別建議彈出視窗"""
+        # 直接顯示所有料理類別
+        detail_content = self.query_one("#detail-content", Static)
+        detail_content.update("🍽️ 正在載入料理類別選項...")
+
+        # 顯示彈出視窗
+        def on_dismiss(selected_genre: str | None) -> None:
+            if selected_genre:
+                # 更新 keyword 欄位
+                keyword_input = self.query_one("#keyword-input", Input)
+                keyword_input.value = selected_genre
+
+                # 取得對應的 genre_code
+                self.current_genre_code = get_genre_code(selected_genre)
+
+                detail_content.update(
+                    f"✅ 已選擇料理類別：{selected_genre}\n\n"
+                    f"料理代碼：{self.current_genre_code}\n\n"
+                    f"💡 現在可以輸入地區後按搜尋，或直接按 Enter 開始搜尋"
+                )
+            else:
+                detail_content.update("⏸️ 已取消選擇")
+
+        await self.push_screen(GenreSuggestModal(), on_dismiss)
 
 
 def main():

@@ -159,6 +159,7 @@ class SearchRequest:
     # 繼承所有餐廳搜尋參數
     area: str | None = None
     keyword: str | None = None
+    genre_code: str | None = None
     reservation_date: str | None = None
     reservation_time: str | None = None
     party_size: int | None = None
@@ -207,6 +208,7 @@ class SearchRequest:
         return RestaurantSearchRequest(
             area=self.area,
             keyword=self.keyword,
+            genre_code=self.genre_code,
             reservation_date=self.reservation_date,
             reservation_time=self.reservation_time,
             party_size=self.party_size,

@@ -10,6 +10,9 @@ from .exceptions import NetworkError
 from .exceptions import ParseError
 from .exceptions import RateLimitError
 from .exceptions import TabelogError
+from .genre_mapping import get_all_genres
+from .genre_mapping import get_genre_code
+from .genre_mapping import get_genre_name_by_code
 from .restaurant import PriceRange
 from .restaurant import Restaurant
 from .restaurant import RestaurantSearchRequest
@@ -48,4 +51,7 @@ __all__ = [
     "AreaSuggestion",
     "get_area_suggestions",
     "get_area_suggestions_async",
+    "get_genre_code",
+    "get_genre_name_by_code",
+    "get_all_genres",
 ]

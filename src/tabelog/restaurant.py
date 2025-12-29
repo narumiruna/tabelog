@@ -82,6 +82,7 @@ class RestaurantSearchRequest:
     # 基本搜尋參數
     area: str | None = None
     keyword: str | None = None
+    genre_code: str | None = None  # 料理類別代碼（例如：RC0107 for すき焼き）
 
     # 預約相關
     reservation_date: str | None = None  # YYYYMMDD
@@ -345,15 +346,25 @@ class RestaurantSearchRequest:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
 
-        # 嘗試使用地區路徑（更準確的地區過濾）
+        # 構建 URL：考慮地區和料理類別
         url = "https://tabelog.com/rst/rstsearch"
+        area_slug = None
+
         if self.area:
             area_slug = get_area_slug(self.area)
-            if area_slug:
-                # 使用地區路徑格式：/area/rstLst/
-                url = f"https://tabelog.com/{area_slug}/rstLst/"
-                # 移除 sa 參數，因為已經在 URL 路徑中
-                params.pop("sa", None)
+
+        # 根據 area 和 genre_code 決定 URL 格式
+        if area_slug and self.genre_code:
+            # 有地區 + 類別：/area/rstLst/GENRE_CODE/
+            url = f"https://tabelog.com/{area_slug}/rstLst/{self.genre_code}/"
+            params.pop("sa", None)  # 移除 area 參數
+        elif area_slug:
+            # 只有地區：/area/rstLst/
+            url = f"https://tabelog.com/{area_slug}/rstLst/"
+            params.pop("sa", None)  # 移除 area 參數
+        elif self.genre_code:
+            # 只有類別：/rstLst/GENRE_CODE/
+            url = f"https://tabelog.com/rstLst/{self.genre_code}/"
 
         resp = httpx.get(
             url=url,
@@ -374,15 +385,25 @@ class RestaurantSearchRequest:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         }
 
-        # 嘗試使用地區路徑（更準確的地區過濾）
+        # 構建 URL：考慮地區和料理類別
         url = "https://tabelog.com/rst/rstsearch"
+        area_slug = None
+
         if self.area:
             area_slug = get_area_slug(self.area)
-            if area_slug:
-                # 使用地區路徑格式：/area/rstLst/
-                url = f"https://tabelog.com/{area_slug}/rstLst/"
-                # 移除 sa 參數，因為已經在 URL 路徑中
-                params.pop("sa", None)
+
+        # 根據 area 和 genre_code 決定 URL 格式
+        if area_slug and self.genre_code:
+            # 有地區 + 類別：/area/rstLst/GENRE_CODE/
+            url = f"https://tabelog.com/{area_slug}/rstLst/{self.genre_code}/"
+            params.pop("sa", None)  # 移除 area 參數
+        elif area_slug:
+            # 只有地區：/area/rstLst/
+            url = f"https://tabelog.com/{area_slug}/rstLst/"
+            params.pop("sa", None)  # 移除 area 參數
+        elif self.genre_code:
+            # 只有類別：/rstLst/GENRE_CODE/
+            url = f"https://tabelog.com/rstLst/{self.genre_code}/"
 
         async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
             resp = await client.get(
