@@ -106,11 +106,19 @@ The codebase has the following main files:
    - **Purpose**: Enables accurate cuisine filtering via URL path-based genre codes
    - **Coverage**: Supports common Japanese cuisine types (和食, 洋食, 中華, 焼肉, 鍋, 居酒屋, カレー, カフェ, etc.)
 
-5. **suggest.py** - Area suggestion API integration
+5. **suggest.py** - Area and keyword suggestion API integration
    - `AreaSuggestion` dataclass: Represents area/station suggestions from Tabelog
+   - `KeywordSuggestion` dataclass: Represents keyword suggestions (cuisine types, restaurant names, combinations)
    - `get_area_suggestions()`: Sync function to get area suggestions
    - `get_area_suggestions_async()`: Async function to get area suggestions
+   - `get_keyword_suggestions()`: Sync function to get keyword suggestions (🆕)
+   - `get_keyword_suggestions_async()`: Async function to get keyword suggestions (🆕)
    - **API**: Uses `https://tabelog.com/internal_api/suggest_form_words`
+     - `sa=query`: Area suggestions (prefecture, city, station)
+     - `sk=query`: Keyword suggestions (cuisine, restaurant, combinations) (🆕)
+   - **Response datatypes**:
+     - Area: `AddressMaster`, `RailroadStation`
+     - Keyword: `Genre2` (cuisine type), `Restaurant` (restaurant name), `Genre2 DetailCondition` (cuisine + condition)
 
 6. **cli.py** - Command-line interface using Typer and Rich
    - `app`: Main Typer application instance
@@ -130,11 +138,16 @@ The codebase has the following main files:
    - `ResultsTable`: DataTable for displaying restaurant results
    - `DetailPanel`: Panel showing detailed restaurant information
    - `AreaSuggestModal`: Modal popup for area suggestions (F2 key)
-   - `GenreSuggestModal`: Modal popup for cuisine type selection (F3 key)
+   - `GenreSuggestModal`: Modal popup for static cuisine type list (F3 key, when keyword is empty)
+   - `KeywordSuggestModal`: Modal popup for dynamic keyword suggestions (F3 key, when keyword has content) (🆕)
+   - **Intelligent F3 behavior** (🆕):
+     - Empty keyword → Shows `GenreSuggestModal` with 45+ static cuisine types (fast, no API call)
+     - Non-empty keyword → Calls API and shows `KeywordSuggestModal` with dynamic suggestions (cuisine types, restaurant names, combinations)
+     - Icon differentiation: 🍜 (Genre2/cuisine), 🏪 (Restaurant), 🔖 (combinations)
    - **Auto-detection**: Automatically detects cuisine names in keyword input and converts to genre_code
    - **Smart linking**: AI parse (F4) automatically triggers area suggest (F2) or genre suggest (F3) after parsing
-   - Features: RadioButton sorting, two-column layout, async worker management, area/cuisine autocomplete
-   - Keybindings: F2 (area suggest), F3 (genre select), F4 (AI parse), s (search), r (results), d (detail), q (quit)
+   - Features: RadioButton sorting, two-column layout, async worker management, context-aware autocomplete
+   - Keybindings: F2 (area suggest), F3 (intelligent keyword/genre suggest), F4 (AI parse), s (search), r (results), d (detail), q (quit)
    - Entry point: `python -m tabelog.tui` or `uv run tabelog tui`
 
 8. **__init__.py** - Public API exports
@@ -172,6 +185,17 @@ The library provides **three levels of abstraction**:
     - Cuisine only: `/rstLst/GENRE_CODE/`
   - **Coverage**: 45+ common Japanese cuisine types with RC codes (RC0107-RC2101)
   - **Auto-detection**: TUI automatically detects cuisine names in keyword input and converts to genre_code
+- **Keyword/Cuisine suggestion API** (NEW - discovered 2025-12-29):
+  - **Endpoint**: `https://tabelog.com/internal_api/suggest_form_words`
+  - **Parameters**:
+    - `sa=query`: Area suggestions (prefecture, station, city)
+    - `sk=query`: Keyword suggestions (cuisine, restaurant names, combinations) (🆕)
+  - **Response structure**: JSON array with `name`, `datatype`, `id_in_datatype`, optional `lat`/`lng`
+  - **datatypes** for keyword (`sk`):
+    - `Genre2`: Cuisine type (すき焼き, 寿司, ラーメン)
+    - `Restaurant`: Restaurant name (和田金, すきやき割烹 美川)
+    - `Genre2 DetailCondition`: Cuisine + condition (すき焼き ランチ, 寿司 接待)
+  - **Usage in TUI**: F3 key intelligently switches between static genre list (empty keyword) and dynamic API suggestions (non-empty keyword)
 - **Error handling**: Gracefully skips malformed items during parsing (try/except with continue)
 - **Caching**: `query_restaurants()` uses `@cache` decorator for performance
 - **User-Agent**: All requests include browser User-Agent to avoid bot detection

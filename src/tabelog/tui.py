@@ -27,7 +27,9 @@ from .restaurant import Restaurant
 from .restaurant import SortType
 from .search import SearchRequest
 from .suggest import AreaSuggestion
+from .suggest import KeywordSuggestion
 from .suggest import get_area_suggestions_async
+from .suggest import get_keyword_suggestions_async
 
 
 class AreaSuggestModal(ModalScreen[str]):
@@ -169,6 +171,82 @@ class GenreSuggestModal(ModalScreen[str]):
         """處理選項選擇事件"""
         if event.option_index < len(self.genres):
             selected = self.genres[event.option_index]
+            self.dismiss(selected)
+
+    def on_key(self, event) -> None:
+        """處理鍵盤事件"""
+        if event.key == "escape":
+            self.dismiss(None)
+
+
+class KeywordSuggestModal(ModalScreen[str]):
+    """關鍵字建議彈出視窗（動態 API）"""
+
+    CSS = """
+    KeywordSuggestModal {
+        align: center middle;
+    }
+
+    #keyword-dialog {
+        width: 70;
+        height: auto;
+        max-height: 30;
+        border: heavy $accent;
+        background: $surface;
+        padding: 1;
+    }
+
+    #keyword-title {
+        text-align: center;
+        text-style: bold;
+        background: $accent;
+        color: $text;
+        padding: 1;
+        margin-bottom: 1;
+    }
+
+    #keyword-list {
+        height: auto;
+        max-height: 23;
+        border: solid $primary-lighten-1;
+        padding: 0;
+    }
+
+    #keyword-list:focus {
+        border: solid $success;
+    }
+
+    #keyword-hint {
+        text-align: center;
+        color: $text-muted;
+        padding: 1 0 0 0;
+        margin-top: 1;
+    }
+    """
+
+    def __init__(self, suggestions: list[KeywordSuggestion], **kwargs):
+        super().__init__(**kwargs)
+        self.suggestions = suggestions
+
+    def compose(self) -> ComposeResult:
+        """建立彈出視窗的元件"""
+        with Vertical(id="keyword-dialog"):
+            yield Label(f"🔍  關鍵字建議（共 {len(self.suggestions)} 個）", id="keyword-title")
+            option_list = OptionList(id="keyword-list")
+            for suggestion in self.suggestions:
+                # 根據 datatype 使用不同圖標
+                icon = (
+                    "🍜" if suggestion.datatype == "Genre2" else "🏪" if suggestion.datatype == "Restaurant" else "🔖"
+                )
+                option_list.add_option(f"{icon}  {suggestion.name}")
+            yield option_list
+            yield Static("💡 提示：使用 ↑↓ 方向鍵選擇，Enter 確認，Esc 取消", id="keyword-hint")
+
+    @on(OptionList.OptionSelected)
+    def on_option_selected(self, event: OptionList.OptionSelected) -> None:
+        """處理選項選擇事件"""
+        if event.option_index < len(self.suggestions):
+            selected = self.suggestions[event.option_index].name
             self.dismiss(selected)
 
     def on_key(self, event) -> None:
@@ -632,30 +710,76 @@ URL: {r.url}
             )
 
     async def action_show_genre_suggest(self) -> None:
-        """顯示料理類別建議彈出視窗"""
-        # 直接顯示所有料理類別
+        """顯示料理類別建議彈出視窗（智慧型）
+
+        - keyword 空字串 → 顯示固定料理類別列表
+        - keyword 有內容 → 使用 API 顯示動態關鍵字建議
+        """
+        keyword_input = self.query_one("#keyword-input", Input)
+        keyword_value = keyword_input.value.strip()
         detail_content = self.query_one("#detail-content", Static)
-        detail_content.update("🍽️ 正在載入料理類別選項...")
 
-        # 顯示彈出視窗
-        def on_dismiss(selected_genre: str | None) -> None:
-            if selected_genre:
-                # 更新 keyword 欄位
-                keyword_input = self.query_one("#keyword-input", Input)
-                keyword_input.value = selected_genre
+        # 情況1：keyword 為空，顯示固定料理類別列表
+        if not keyword_value:
+            detail_content.update("🍽️ 正在載入料理類別選項...")
 
-                # 取得對應的 genre_code
-                self.current_genre_code = get_genre_code(selected_genre)
+            def on_dismiss_genre(selected_genre: str | None) -> None:
+                if selected_genre:
+                    keyword_input.value = selected_genre
+                    self.current_genre_code = get_genre_code(selected_genre)
+                    detail_content.update(
+                        f"✅ 已選擇料理類別：{selected_genre}\n\n"
+                        f"料理代碼：{self.current_genre_code}\n\n"
+                        f"💡 現在可以輸入地區後按搜尋，或直接按 Enter 開始搜尋"
+                    )
+                else:
+                    detail_content.update("⏸️ 已取消選擇")
 
+            await self.push_screen(GenreSuggestModal(), on_dismiss_genre)
+
+        # 情況2：keyword 有內容，使用 API 顯示動態建議
+        else:
+            detail_content.update(f"🔍 正在搜尋「{keyword_value}」的關鍵字建議...")
+
+            try:
+                # 呼叫 API 取得關鍵字建議
+                suggestions = await get_keyword_suggestions_async(keyword_value)
+
+                if not suggestions:
+                    detail_content.update(
+                        f"❌ 沒有找到「{keyword_value}」的相關建議\n\n"
+                        f"💡 提示：\n"
+                        f"• 清空關鍵字後按 F3 可查看所有料理類別\n"
+                        f"• 嘗試輸入更短的關鍵字（例如：すき、寿司）"
+                    )
+                    return
+
+                detail_content.update(f"✅ 找到 {len(suggestions)} 個建議")
+
+                def on_dismiss_keyword(selected_keyword: str | None) -> None:
+                    if selected_keyword:
+                        keyword_input.value = selected_keyword
+                        # 嘗試取得 genre_code
+                        self.current_genre_code = get_genre_code(selected_keyword)
+                        if self.current_genre_code:
+                            detail_content.update(
+                                f"✅ 已選擇：{selected_keyword}\n\n"
+                                f"料理代碼：{self.current_genre_code}\n\n"
+                                f"💡 現在可以輸入地區後按搜尋，或直接按 Enter 開始搜尋"
+                            )
+                        else:
+                            detail_content.update(
+                                f"✅ 已選擇：{selected_keyword}\n\n💡 現在可以輸入地區後按搜尋，或直接按 Enter 開始搜尋"
+                            )
+                    else:
+                        detail_content.update("⏸️ 已取消選擇")
+
+                await self.push_screen(KeywordSuggestModal(suggestions), on_dismiss_keyword)
+
+            except Exception as e:
                 detail_content.update(
-                    f"✅ 已選擇料理類別：{selected_genre}\n\n"
-                    f"料理代碼：{self.current_genre_code}\n\n"
-                    f"💡 現在可以輸入地區後按搜尋，或直接按 Enter 開始搜尋"
+                    f"❌ 取得關鍵字建議時發生錯誤\n\n錯誤訊息：{e}\n\n💡 建議：清空關鍵字後按 F3 查看所有料理類別"
                 )
-            else:
-                detail_content.update("⏸️ 已取消選擇")
-
-        await self.push_screen(GenreSuggestModal(), on_dismiss)
 
 
 def main():

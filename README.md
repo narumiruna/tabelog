@@ -9,7 +9,8 @@ A Python library for searching restaurants on Tabelog using web scraping.
 - **Rich Data**: Extract restaurant details including ratings, reviews, prices, and availability
 - **Interactive TUI**: Beautiful terminal UI for interactive restaurant search (新!)
   - **Area Suggestion**: Smart area/station suggestions with F2 key (新!)
-  - **Cuisine Selection**: Browse and select from 45+ cuisine types with F4 key (新!)
+  - **Intelligent Keyword Suggestion (F3)**: Context-aware suggestions - static cuisine list when empty, dynamic API results when typing (新!)
+  - **AI Natural Language Parsing (F4)**: Parse natural language queries with AI (新!)
   - **Auto-Detection**: Automatically detects cuisine types in keyword input (新!)
   - **Accurate Area Filtering**: Prefecture-level filtering for all 47 prefectures (新!)
 - **Async Support**: Both synchronous and asynchronous API
@@ -143,7 +144,9 @@ TUI 特色：
 - ⌨️  完整鍵盤導航支援
 - 🚀 自動取消前次搜尋，避免卡住
 - 🗺️ **智慧型地區建議（F2）**：自動提供都道府縣、車站、地區選項
-- 🍽️ **料理類別選擇（F3）**：瀏覽並選擇 45+ 種日本料理類型（すき焼き、寿司、ラーメン等）
+- 🍽️ **智慧型關鍵字建議（F3）**（新！）：
+  - 關鍵字為空 → 顯示 45+ 種料理類別列表（すき焼き、寿司、ラーメン等）
+  - 關鍵字有內容 → 呼叫 API 提供動態建議（料理類型、餐廳名稱、組合關鍵字）
 - 🤖 **AI 自然語言解析（F4）**：輸入自然語言（例如：三重的すき焼き），自動解析並觸發建議
 - ✨ **智慧聯動**：AI 解析後自動觸發地區建議（F2）或料理選擇（F3）
 - 🎯 **自動料理識別**：在關鍵字欄位輸入料理名稱，自動轉換為精確過濾

@@ -6,13 +6,156 @@ This document tracks potential features, improvements, and implementation ideas 
 
 ### High Priority
 
+- [ ] **MCP Server Integration**
+  - Expose Tabelog search functionality as an MCP (Model Context Protocol) server
+  - **Key features**:
+    - Tool: `search_restaurants` - Search restaurants by area, keyword, cuisine type
+    - Tool: `list_cuisines` - Get all supported cuisine types (for autocomplete/suggestions)
+    - Tool: `get_area_suggestions` - Get area/station suggestions based on user query
+    - Tool: `get_keyword_suggestions` - 🆕 Get keyword/cuisine/restaurant name suggestions
+    - Input validation and error handling
+    - Structured output in MCP-compatible format
+  - **Design principles**:
+    - ❌ **No AI parsing required**: Avoid using `parse_user_input()` to eliminate API key dependency
+    - ✅ **Simple parameters**: area, keyword, cuisine (direct input, no LLM parsing)
+    - ✅ **Zero configuration**: Works out-of-the-box without API keys
+    - ✅ **Client-side parsing**: Let Claude/AI clients handle natural language, MCP server only handles structured queries
+  - **Implementation**:
+    - New file: `src/tabelog/server.py` (MCP server entry point)
+    - Use existing `SearchRequest` for backend logic
+    - Return results in Claude-friendly format (structured JSON)
+    - Entry point: `tabelog` command (already defined in pyproject.toml)
+  - **Example MCP tools**:
+    ```python
+    # Tool 1: search_restaurants
+    @server.tool()
+    async def search_restaurants(
+        area: str | None = None,
+        keyword: str | None = None,
+        cuisine: str | None = None,
+        sort: str = "ranking",
+        limit: int = 20,
+    ) -> list[dict]:
+        """Search restaurants on Tabelog"""
+        # Use SearchRequest directly, no LLM parsing
+        ...
+
+    # Tool 2: list_cuisines
+    @server.tool()
+    async def list_cuisines() -> list[dict]:
+        """Get all supported cuisine types for autocomplete/suggestions
+
+        Returns all 45+ cuisine types with their genre codes.
+        Client can use this for autocomplete or let user select from list.
+
+        Example return:
+        [
+          {"name": "すき焼き", "code": "RC0107"},
+          {"name": "寿司", "code": "RC0201"},
+          {"name": "ラーメン", "code": "RC0501"},
+          ...
+        ]
+        """
+        cuisines = get_all_genres()
+        return [
+            {"name": cuisine, "code": get_genre_code(cuisine)}
+            for cuisine in cuisines
+        ]
+
+    # Tool 3: get_area_suggestions
+    @server.tool()
+    async def get_area_suggestions(query: str) -> list[dict]:
+        """Get area/station suggestions based on user query
+
+        Uses Tabelog's internal suggest API to provide relevant area/station options.
+
+        Args:
+            query: User's area search query (e.g., "東京", "渋谷")
+
+        Returns:
+            List of suggestions with display text and codes
+        """
+        return await get_area_suggestions_async(query)
+
+    # Tool 4: get_keyword_suggestions (NEW!)
+    @server.tool()
+    async def get_keyword_suggestions(query: str) -> list[dict]:
+        """Get keyword/cuisine/restaurant name suggestions
+
+        Uses Tabelog's internal suggest API (same endpoint as area suggestions).
+        Returns suggestions for:
+        - Cuisine types (Genre2): すき焼き, 寿司, etc.
+        - Restaurant names (Restaurant): 和田金, etc.
+        - Keyword combinations (Genre2 DetailCondition): すき焼き ランチ, etc.
+
+        Args:
+            query: User's keyword search query (e.g., "すき", "寿司")
+
+        Returns:
+            List of suggestions with name and datatype
+            Example: [
+              {"name": "すき焼き", "datatype": "Genre2"},
+              {"name": "すき焼き ランチ", "datatype": "Genre2 DetailCondition"},
+              {"name": "すき焼きとやきとり 坊っちゃん", "datatype": "Restaurant"}
+            ]
+        """
+        return await get_keyword_suggestions_async(query)
+    ```
+  - **Benefits**:
+    - AI clients (Claude) can parse natural language themselves
+    - No dependency on OpenAI API key
+    - Simpler architecture (separation of concerns)
+    - MCP server focuses on data retrieval, not NLP
+    - **Cuisine suggestions**: Two complementary approaches:
+      - `list_cuisines`: Static list of all 45+ cuisine types with codes (zero API calls)
+      - `get_keyword_suggestions`: 🆕 Dynamic suggestions from Tabelog API (includes cuisines, restaurants, combinations)
+    - **Keyword autocomplete**: Real-time suggestions as user types, including:
+      - Cuisine types (すき焼き, 寿司)
+      - Restaurant names (和田金)
+      - Popular combinations (すき焼き ランチ)
+  - **Usage example in Claude Desktop**:
+    ```json
+    {
+      "mcpServers": {
+        "tabelog": {
+          "command": "uvx",
+          "args": ["tabelog@latest"]
+        }
+      }
+    }
+    ```
+  - **Workflow examples** (how Claude would use the tools):
+    ```
+    # Example 1: Using static cuisine list
+    User: "Find sukiyaki restaurants in Mie"
+    Claude:
+    1. Calls list_cuisines() → Gets cuisine list, finds "すき焼き" (RC0107)
+    2. Calls get_area_suggestions("三重") → Gets area options
+    3. Calls search_restaurants(area="三重", cuisine="すき焼き", sort="ranking")
+    4. Returns: 和田金, 金谷本店, etc. (すき焼き専門店 only)
+
+    # Example 2: Using dynamic keyword suggestions (NEW!)
+    User: "I want to eat suki... something in Tokyo"
+    Claude:
+    1. Calls get_keyword_suggestions("suki") → Gets ["すき焼き", "すき焼き ランチ", ...]
+    2. Suggests options to user or picks most relevant: "すき焼き"
+    3. Calls get_area_suggestions("Tokyo") → Gets ["東京都", "東京駅", ...]
+    4. Calls search_restaurants(area="東京", keyword="すき焼き", sort="ranking")
+
+    # Example 3: Direct search without suggestions
+    User: "Show me ramen shops in Tokyo"
+    Claude: Calls search_restaurants(area="東京", keyword="ラーメン", sort="ranking")
+
+    # Example 4: Restaurant name search (NEW!)
+    User: "Find 和田金 restaurant"
+    Claude:
+    1. Calls get_keyword_suggestions("和田金") → Finds restaurant name suggestions
+    2. Calls search_restaurants(keyword="和田金")
+    ```
+
 ### Medium Priority
 
 ### Low Priority / Future Considerations
-- [ ] **CLI tool for quick restaurant searches**
-  - Simple command-line interface: `tabelog search "東京 寿司" --min-rating 4.0`
-  - Output formats: table, JSON, CSV
-  - Tool: Use `typer` (already in dependencies)
 
 - [ ] **Caching and performance optimization**
   - Built-in response caching (not just `@cache` on one function)
@@ -297,6 +440,36 @@ This document tracks potential features, improvements, and implementation ideas 
 ## 📝 Implementation Notes
 
 ### Technical Considerations
+
+- **Tabelog Suggest API** (discovered 2025-12-29):
+  - **Endpoint**: `https://tabelog.com/internal_api/suggest_form_words`
+  - **Parameters**:
+    - `sa=query` - Area suggestions (search area)
+    - `sk=query` - Keyword suggestions (search keyword)
+  - **Response format**: JSON array of suggestions
+    ```json
+    [
+      {
+        "datatype": "Genre2" | "Restaurant" | "Genre2 DetailCondition" | "Area2" | "AddressMaster" | "RailroadStation",
+        "name": "suggestion text",
+        "id": 123,
+        "id_in_datatype": 456,
+        "lat": null | number,
+        "lng": null | number,
+        "related_info": ""
+      }
+    ]
+    ```
+  - **datatype values**:
+    - `Genre2`: Cuisine type (すき焼き, 寿司)
+    - `Restaurant`: Restaurant name (和田金)
+    - `Genre2 DetailCondition`: Cuisine + condition (すき焼き ランチ)
+    - `Area2`: Area name (東京, 大阪)
+    - `AddressMaster`: Address
+    - `RailroadStation`: Station name (渋谷駅)
+  - **Current implementation**: `suggest.py` only supports area suggestions (`sa` parameter)
+  - **Future enhancement**: Add keyword suggestion support (`sk` parameter) for dynamic autocomplete
+
 - **Restaurant detail scraping challenges**:
   - Different restaurants may have different tab availability (not all have menu/course pages)
   - Need robust error handling for missing/malformed data
@@ -366,6 +539,28 @@ This document tracks potential features, improvements, and implementation ideas 
 
 ## ✅ Completed
 
+- **Command-line interface (CLI) with natural language query** (2025-12-29)
+  - ✓ Created comprehensive CLI using Typer and Rich
+  - ✓ Commands:
+    - `tabelog search` - Search restaurants with multiple filters
+    - `tabelog list-cuisines` - Display all supported cuisine types
+    - `tabelog tui` - Launch interactive TUI
+  - ✓ CLI options: -a/--area, -k/--keyword, -c/--cuisine, -q/--query, -s/--sort, -n/--limit, -o/--output
+  - ✓ **Natural language query (-q/--query)**:
+    - AI-powered parsing using `llm.parse_user_input()`
+    - Multi-language support (Chinese, Japanese, English)
+    - Auto-translation (e.g., "壽喜燒" → "すき焼き")
+    - Example: `tabelog search -q "三重すきやき"`
+  - ✓ **Auto-detection of cuisine types**: Automatically converts cuisine names to genre_code for precise filtering
+  - ✓ **Three output formats**: table (Rich), json, simple text
+  - ✓ **Graceful error handling**: Falls back when API key is missing
+  - ✓ **Type-safe implementation**: Uses `Annotated[type, Option(...)]` pattern to satisfy ruff B008
+  - ✓ Color-coded console output with Rich library
+  - ✓ All 78 tests passing
+  - ✓ All linting and type checks passing (ruff, ty)
+  - ✓ Documentation updated (README.md, CLAUDE.md)
+  - Entry point: `tabelog search` or `uv run tabelog search`
+
 - **Area filtering and suggestion system** (2025-12-29)
   - ✓ Fixed critical bug: Tabelog's `/rst/rstsearch?sa=area` does NOT filter by area
   - ✓ Implemented path-based URL filtering (e.g., `/tokyo/rstLst/` instead of `/rst/rstsearch?sa=東京`)
@@ -392,13 +587,20 @@ This document tracks potential features, improvements, and implementation ideas 
   - ✓ Tabelog native API sorting (SortType passed to backend)
   - ✓ Results table (DataTable) displaying restaurant list
   - ✓ Detail panel showing selected restaurant information
-  - ✓ Keyboard shortcuts: q (quit), s (search), r (results), d (detail)
+  - ✓ **Advanced hotkeys**:
+    - F2: Area suggestions (autocomplete with prefecture/station options)
+    - F3: Cuisine type selection (45+ cuisine types in modal)
+    - F4: AI natural language parsing (multi-language support)
+    - q (quit), s (search), r (results), d (detail)
+  - ✓ **Smart linking**: After AI parsing, auto-triggers area suggest (F2) or cuisine select (F3) based on parsed values
+  - ✓ **Genre code filtering**: Automatically converts cuisine names to genre_code for precise filtering
   - ✓ Async search integration for non-blocking UI
   - ✓ CLI command: `tabelog tui`
   - ✓ Clean and responsive dark theme with simplified styling
   - ✓ Auto-height search panel to prevent clipping
   - ✓ All 78 tests passing
   - ✓ Type checking passing
+  - ✓ Documentation updated (TUI_USAGE.md, README.md, CLAUDE.md)
   - Note: Advanced features like tab-based detail navigation, export, and filtering can be added later
 
 - **Restaurant detail page scraping** (2025-12-28)
