@@ -112,7 +112,19 @@ The codebase has the following main files:
    - `get_area_suggestions_async()`: Async function to get area suggestions
    - **API**: Uses `https://tabelog.com/internal_api/suggest_form_words`
 
-6. **tui.py** - Interactive terminal UI using Textual framework
+6. **cli.py** - Command-line interface using Typer and Rich
+   - `app`: Main Typer application instance
+   - `search()`: Search restaurants with various filters (area, keyword, cuisine, query, sort, limit, output format)
+   - `list_cuisines()`: Display all supported cuisine types in a table
+   - `tui()`: Launch the interactive TUI
+   - **Output formats**: table (Rich table), json (structured JSON), simple (plain text)
+   - **Features**: Color-coded output, error handling, cuisine auto-detection, genre code filtering, AI natural language parsing
+   - **CLI options**: -a/--area, -k/--keyword, -c/--cuisine, -q/--query (🆕), -s/--sort, -n/--limit, -o/--output
+   - **Natural language query (-q)**: Uses `llm.parse_user_input()` to parse user input in multiple languages (Chinese, Japanese, English)
+   - **Auto-detection**: Automatically detects cuisine types in keyword and converts to genre_code for precise filtering
+   - Entry point: `tabelog search` or direct execution
+
+7. **tui.py** - Interactive terminal UI using Textual framework
    - `TabelogApp`: Main TUI application class
    - `SearchPanel`: Search input panel with area, keyword, and sorting options
    - `ResultsTable`: DataTable for displaying restaurant results
@@ -125,7 +137,7 @@ The codebase has the following main files:
    - Keybindings: F2 (area suggest), F3 (genre select), F4 (AI parse), s (search), r (results), d (detail), q (quit)
    - Entry point: `python -m tabelog.tui` or `uv run tabelog tui`
 
-7. **__init__.py** - Public API exports
+8. **__init__.py** - Public API exports
    - Exports: `Restaurant`, `RestaurantSearchRequest`, `SearchRequest`, `SearchResponse`, `SortType`, `PriceRange`, `query_restaurants`, `AreaSuggestion`, `get_area_suggestions`, `get_area_suggestions_async`, `get_genre_code`, `get_genre_name_by_code`, `get_all_genres`
 
 ### API Patterns

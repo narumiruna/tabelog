@@ -83,6 +83,47 @@ pip install tabelog
 
 ## Quick Start
 
+### Command Line Interface (CLI)
+
+使用命令列快速搜尋餐廳：
+
+```bash
+# 基本搜尋
+tabelog search --area 東京 --keyword 寿司
+
+# 使用料理類別精確過濾
+tabelog search -a 三重 -c すき焼き
+
+# 指定排序方式和輸出格式
+tabelog search -a 大阪 -c ラーメン --sort ranking -o json
+
+# 🆕 使用自然語言查詢（AI 自動解析地區和關鍵字）
+tabelog search -q 三重すきやき
+tabelog search -q "我想吃東京的拉麵"
+tabelog search -q "sushi in Osaka"
+
+# 查看所有支援的料理類別
+tabelog list-cuisines
+
+# 查看完整說明
+tabelog search --help
+```
+
+**CLI 選項：**
+- `-a, --area`: 搜尋地區（例如：東京、大阪）
+- `-k, --keyword`: 關鍵字（例如：寿司、ラーメン）
+- `-c, --cuisine`: 料理類別（例如：すき焼き、焼肉）- 自動精確過濾
+- `-q, --query`: 🆕 自然語言查詢（會自動解析地區和關鍵字，支援多語言）
+- `-s, --sort`: 排序方式（ranking, review-count, new-open, standard）
+- `-n, --limit`: 顯示結果數量（預設：20）
+- `-o, --output`: 輸出格式（table, json, simple）
+
+**自然語言查詢功能 (-q):**
+- ✅ 支援多語言輸入（中文、日文、英文等）
+- ✅ 自動解析地區和料理類型
+- ✅ 智慧型翻譯（例如：「壽喜燒」→「すき焼き」）
+- ⚠️ 需要設定 OpenAI API 金鑰（`.env` 檔案中的 `OPENAI_API_KEY`）
+
 ### Interactive TUI (推薦!)
 
 啟動美觀的終端介面來搜尋餐廳：
