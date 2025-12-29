@@ -49,13 +49,8 @@ make publish  # Builds wheel and publishes to PyPI
 ### Running Examples
 ```bash
 # Basic search example
-PYTHONPATH=/home/narumi/workspace/gurume/src python examples/basic_search.py
-
-# Or with uv (推薦)
 uv run python examples/basic_search.py
 ```
-
-**重要**: 執行 Python 腳本時，**務必**使用 `uv run python` 而不是直接 `python`，以確保使用正確的虛擬環境和依賴套件。
 
 ### Running MCP Server
 ```bash

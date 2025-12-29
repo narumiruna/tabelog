@@ -26,19 +26,19 @@ PROMPT: Final[str] = """
 """.strip()
 
 
-class SearchRequest(BaseModel):
+class SearchParams(BaseModel):
     area: str
     keyword: str
 
 
-def parse_user_input(user_input: str) -> SearchRequest:
+def parse_user_input(user_input: str) -> SearchParams:
     load_dotenv(find_dotenv())
 
     client = OpenAI()
     response = client.responses.parse(
         model="gpt-4.1",
         input=PROMPT.format(user_input=user_input),
-        text_format=SearchRequest,
+        text_format=SearchParams,
     )
 
     if response.output_parsed is None:
