@@ -69,24 +69,38 @@ CITY_MAPPING = {
     "福岡": "fukuoka",
 }
 
+# 創建反向映射：從縣名（不含後綴）到 slug 的映射
+_PREFIX_TO_SLUG = {}
+for full_name, slug in PREFECTURE_MAPPING.items():
+    # 移除都、府、県後綴
+    for suffix in ["都", "府", "県"]:
+        if full_name.endswith(suffix):
+            prefix = full_name[: -len(suffix)]
+            _PREFIX_TO_SLUG[prefix] = slug
+            break
+
 
 def get_area_slug(area_name: str) -> str | None:
     """
     將地區名稱轉換為 Tabelog URL slug
 
     Args:
-        area_name: 地區名稱（例如："東京都"、"東京"、"大阪府"）
+        area_name: 地區名稱（例如："東京都"、"東京"、"大阪府"、"三重"）
 
     Returns:
-        URL slug（例如："tokyo"）或 None（如果找不到映射）
+        URL slug（例如："tokyo"、"mie"）或 None（如果找不到映射）
     """
-    # 先檢查完整名稱
+    # 先檢查完整名稱（例如："東京都"、"三重県"）
     if area_name in PREFECTURE_MAPPING:
         return PREFECTURE_MAPPING[area_name]
 
-    # 檢查城市名稱
+    # 檢查城市名稱（例如："東京"、"大阪"）
     if area_name in CITY_MAPPING:
         return CITY_MAPPING[area_name]
+
+    # 檢查縣名前綴（例如："三重" -> "mie"）
+    if area_name in _PREFIX_TO_SLUG:
+        return _PREFIX_TO_SLUG[area_name]
 
     # 移除"都"、"府"、"県"、"市"等後綴再試一次
     for suffix in ["都", "府", "県", "市"]:
@@ -96,5 +110,7 @@ def get_area_slug(area_name: str) -> str | None:
                 return PREFECTURE_MAPPING[base_name]
             if base_name in CITY_MAPPING:
                 return CITY_MAPPING[base_name]
+            if base_name in _PREFIX_TO_SLUG:
+                return _PREFIX_TO_SLUG[base_name]
 
     return None
