@@ -34,7 +34,8 @@ The Gurume MCP server provides restaurant search functionality to AI assistants 
       "args": [
         "--from",
         "git+https://github.com/narumiruna/gurume",
-        "gurume-mcp"
+        "gurume",
+        "mcp"
       ]
     }
   }
@@ -47,7 +48,7 @@ The Gurume MCP server provides restaurant search functionality to AI assistants 
   "mcpServers": {
     "gurume": {
       "command": "uvx",
-      "args": ["--from", "gurume", "gurume-mcp"]
+      "args": ["gurume", "mcp"]
     }
   }
 }
@@ -63,7 +64,8 @@ The Gurume MCP server provides restaurant search functionality to AI assistants 
         "run",
         "--directory",
         "/home/<user>/workspace/gurume",
-        "gurume-mcp"
+        "gurume",
+        "mcp"
       ]
     }
   }
@@ -71,16 +73,56 @@ The Gurume MCP server provides restaurant search functionality to AI assistants 
 ```
 
 **Available Tools**:
-- `search_restaurants`: Search restaurants by area, keyword, or cuisine type
-- `list_cuisines`: Get all 45+ supported Japanese cuisine types with genre codes
-- `get_area_suggestions`: Get area/station suggestions from Tabelog API
-- `get_keyword_suggestions`: Get keyword/cuisine/restaurant name suggestions
+
+1. **`search_restaurants`** - Search restaurants by area, keyword, or cuisine type
+   - Parameters:
+     - `area` (optional): Prefecture/city name (e.g., "東京", "大阪", "三重")
+     - `keyword` (optional): Search keyword (e.g., "寿司", "ラーメン")
+     - `cuisine` (optional): Precise cuisine filter (e.g., "すき焼き", "焼肉")
+     - `sort` (optional): "ranking" | "review-count" | "new-open" | "standard" (default: "ranking")
+     - `limit` (optional): Max results 1-60 (default: 20)
+   - Returns: Array of restaurants with name, rating, reviews, area, genres, URL, prices
+
+2. **`list_cuisines`** - Get all 45+ supported Japanese cuisine types
+   - Parameters: None
+   - Returns: Array of `{name, code}` for all supported cuisines
+
+3. **`get_area_suggestions`** - Get area/station suggestions
+   - Parameters:
+     - `query` (required): Area search query (e.g., "東京", "渋谷")
+   - Returns: Array of suggestions with name, type, coordinates
+
+4. **`get_keyword_suggestions`** - Get keyword/cuisine/restaurant suggestions
+   - Parameters:
+     - `query` (required): Keyword search query (e.g., "すき", "寿司")
+   - Returns: Array of dynamic suggestions including cuisine types and restaurant names
+
+**Usage Examples** (in Claude Desktop):
+```
+User: Find top-rated sukiyaki restaurants in Mie prefecture
+Claude: [Uses search_restaurants with area="三重", cuisine="すき焼き", sort="ranking"]
+
+User: What cuisine types can I search for?
+Claude: [Uses list_cuisines to show all 45+ options]
+
+User: I want to search near Shibuya station
+Claude: [Uses get_area_suggestions with query="渋谷" to show area options]
+```
 
 **Design Principles**:
 - ✅ **Zero Configuration**: No API keys required
 - ✅ **Simple Parameters**: Direct structured inputs (area, keyword, cuisine)
 - ✅ **Client-Side NLP**: AI clients handle natural language parsing
 - ✅ **Accurate Filtering**: Uses Tabelog genre codes for precise cuisine filtering
+
+**Testing the MCP Server**:
+```bash
+# Test if server starts correctly
+uv run gurume mcp
+
+# The server should start and wait for MCP protocol messages
+# Press Ctrl+C to stop
+```
 
 
 ## Installation

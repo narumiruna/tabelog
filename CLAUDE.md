@@ -55,10 +55,10 @@ uv run python examples/basic_search.py
 ### Running MCP Server
 ```bash
 # Via entry point (requires installation)
-uv run gurume-mcp
+uv run gurume mcp
 
 # Local development
-uv run --directory /path/to/gurume gurume-mcp
+uv run --directory /path/to/gurume gurume mcp
 
 # Direct execution
 uv run python -m gurume.server
@@ -193,7 +193,7 @@ The codebase has the following main files:
       - ✅ Client-side natural language handling
     - **Implementation**: Uses MCP SDK's `@server.list_tools()` and `@server.call_tool()` decorators
     - **Transport**: stdio (standard input/output)
-    - Entry point: `gurume-mcp` command
+    - Entry point: `gurume mcp` command
 
 11. **__init__.py** - Public API exports
    - Exports: `Restaurant`, `RestaurantSearchRequest`, `SearchRequest`, `SearchResponse`, `SortType`, `PriceRange`, `query_restaurants`, `AreaSuggestion`, `get_area_suggestions`, `get_area_suggestions_async`, `get_genre_code`, `get_genre_name_by_code`, `get_all_genres`
