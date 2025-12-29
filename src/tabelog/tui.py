@@ -186,7 +186,7 @@ class SearchPanel(Container):
         with Horizontal(id="input-row"):
             yield Input(placeholder="地區 (例如: 東京, 按 F2 查看建議)", id="area-input")
             yield Input(
-                placeholder="關鍵字 (例如: 寿司, 按 F4 選擇料理類別, 或輸入自然語言後按 F3 解析)", id="keyword-input"
+                placeholder="關鍵字 (例如: 寿司, 按 F3 選擇料理類別, 或輸入自然語言後按 F4 解析)", id="keyword-input"
             )
         with Horizontal(id="sort-row"):
             yield Static("排序:", classes="sort-label")
@@ -355,8 +355,8 @@ class TabelogApp(App):
         ("r", "focus_results", "Results"),
         ("d", "focus_detail", "Detail"),
         ("f2", "show_area_suggest", "Area Suggest"),
-        ("f3", "parse_natural_language", "AI Parse"),
-        ("f4", "show_genre_suggest", "Genre Suggest"),
+        ("f3", "show_genre_suggest", "Genre Suggest"),
+        ("f4", "parse_natural_language", "AI Parse"),
     ]
 
     def __init__(self, **kwargs):
@@ -578,7 +578,7 @@ URL: {r.url}
             # 如果輸入框為空，提示用戶
             detail_content = self.query_one("#detail-content", Static)
             detail_content.update(
-                "💡 請先在關鍵字欄位輸入自然語言\n\n例如：\n• 我想吃三重的壽喜燒\n• 東京的拉麵\n• 大阪難波附近的居酒屋\n\n然後按 F3 使用 AI 解析"
+                "💡 請先在關鍵字欄位輸入自然語言\n\n例如：\n• 我想吃三重的壽喜燒\n• 東京的拉麵\n• 大阪難波附近的居酒屋\n\n然後按 F4 使用 AI 解析"
             )
             return
 
@@ -611,6 +611,9 @@ URL: {r.url}
             # 如果地區有值，自動觸發地區建議
             if result.area:
                 await self.action_show_area_suggest()
+            # 如果關鍵字有值，自動觸發料理類別建議
+            elif result.keyword:
+                await self.action_show_genre_suggest()
             else:
                 # 自動聚焦到搜尋按鈕，方便使用者直接 Enter 搜尋
                 area_input.focus()

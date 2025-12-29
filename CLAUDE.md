@@ -118,10 +118,11 @@ The codebase has the following main files:
    - `ResultsTable`: DataTable for displaying restaurant results
    - `DetailPanel`: Panel showing detailed restaurant information
    - `AreaSuggestModal`: Modal popup for area suggestions (F2 key)
-   - `GenreSuggestModal`: Modal popup for cuisine type selection (F4 key)
+   - `GenreSuggestModal`: Modal popup for cuisine type selection (F3 key)
    - **Auto-detection**: Automatically detects cuisine names in keyword input and converts to genre_code
+   - **Smart linking**: AI parse (F4) automatically triggers area suggest (F2) or genre suggest (F3) after parsing
    - Features: RadioButton sorting, two-column layout, async worker management, area/cuisine autocomplete
-   - Keybindings: F2 (area suggest), F3 (AI parse), F4 (cuisine select), s (search), r (results), d (detail), q (quit)
+   - Keybindings: F2 (area suggest), F3 (genre select), F4 (AI parse), s (search), r (results), d (detail), q (quit)
    - Entry point: `python -m tabelog.tui` or `uv run tabelog tui`
 
 7. **__init__.py** - Public API exports
